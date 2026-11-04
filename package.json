@@ -1,0 +1,16 @@
+{
+  "name": "mesas-qr",
+  "version": "1.0.0",
+  "description": "Seating chart interactivo con QR para eventos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "reiniciar": "node -e \"require('fs').writeFileSync('data/llegadas.json','{}')\""
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.21.0",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.0"
+  }
+}

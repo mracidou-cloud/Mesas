@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administración · Mesas</title>
+<style>
+  :root{--oro:#c49f55;--tinta:#1a2036;--gris:#7d7869;--borde:#e6dcc6;--fondo:#f7f2e7}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);color:var(--tinta)}
+  header{background:#0e1322;color:#f6efe0;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:20px;font-weight:600}
+  header a{color:#f1dca6;font-size:14px;margin-left:16px}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 18px 60px}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:20px 22px;margin-bottom:20px}
+  .card h2{margin:0 0 4px;font-size:18px}
+  .card .desc{margin:0 0 16px;color:var(--gris);font-size:14px}
+  label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+  input,textarea,select{font:inherit;padding:9px 11px;border:1px solid var(--borde);border-radius:8px;width:100%;background:#fdfbf6}
+  textarea{min-height:110px;font-family:ui-monospace,monospace;font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .nombres{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px}
+  .nombres div{display:flex;align-items:center;gap:6px;font-size:13px}
+  .nombres span{white-space:nowrap;color:var(--gris);min-width:52px}
+  button{font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--borde);background:#fff;cursor:pointer}
+  button.oro{background:var(--oro);border-color:var(--oro);color:#fff}
+  button.peligro{color:#a3352d;border-color:#e8c4bf}
+  button.mini{padding:4px 9px;font-size:12px;white-space:nowrap}
+  .acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  .msg{font-size:14px;margin-top:10px}
+  .msg.ok{color:#2c7a3d}.msg.mal{color:#a3352d}
+  .aviso{background:#fff6e0;border:1px solid #f0d99a;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--gris);padding:6px;border-bottom:1px solid var(--borde)}
+  td{padding:4px 6px;border-bottom:1px solid #f2ecdf}
+  td input{padding:6px 8px}
+  .tabla{max-height:440px;overflow:auto;border:1px solid #f0e9da;border-radius:8px}
+  .resumen{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .resumen span{font-size:12px;padding:4px 9px;border-radius:20px;background:#f2ecdf}
+  .resumen span.mal{background:#f8dcd7;color:#8d2a22}
+  .resumen span.ok{background:#dcefdc;color:#24622f}
+  #login{max-width:360px;margin:12vh auto}
+  .oculto{display:none}
+  .llego{color:#2c7a3d;font-weight:600}
+</style>
+</head>
+<body>
+<header><h1>⚙️ Administración del plano de mesas</h1>
+  <nav><a href="/pantalla" target="_blank">Abrir pantalla ↗</a><a href="/m" target="_blank">Vista celular ↗</a></nav></header>
+
+<div id="login" class="card">
+  <h2>Entrar</h2><p class="desc">Escribe la clave de administración (está en <code>config.json</code>).</p>
+  <input id="clave" type="password" placeholder="Clave">
+  <div class="acciones"><button class="oro" id="entrar">Entrar</button></div>
+  <div class="msg mal" id="lmsg"></div>
+</div>
+
+<div class="wrap oculto" id="panel">
+
+  <div class="card">
+    <h2>1. Datos del evento</h2>
+    <p class="desc">Cambia el nombre, cuántas mesas hay y cuántas personas caben en cada una. La pantalla se redibuja sola al guardar.</p>
+    <div class="grid">
+      <div><label>Nombre del evento</label><input id="c-evento"></div>
+      <div><label>Subtítulo (opcional)</label><input id="c-sub"></div>
+      <div><label>Cantidad de mesas</label><input id="c-mesas" type="number" min="1" max="40"></div>
+      <div><label>Invitados por mesa</label><input id="c-asientos" type="number" min="1" max="20"></div>
+    </div>
+    <div style="margin-top:16px"><label>Nombres de mesas (opcional — ej. “Novios”, “Familia”)</label><div class="nombres" id="c-nombres"></div></div>
+    <div style="margin-top:16px;max-width:300px"><label>Cambiar clave de admin (opcional)</label><input id="c-clave" type="password" placeholder="Dejar vacío para no cambiar"></div>
+    <div class="acciones"><button class="oro" id="g-config">Guardar datos del evento</button></div>
+    <div id="m-config"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Lista de invitados</h2>
+    <p class="desc">Edita aquí, o pega directamente desde Excel / Google Sheets dos columnas: <b>nombre</b> y <b>mesa</b>.</p>
+    <div class="acciones" style="margin-top:0">
+      <button id="agregar">+ Agregar invitado</button>
+      <button id="b-pegar">📋 Pegar desde Excel</button>
+      <label style="margin:0;font-size:inherit;font-weight:inherit"><button type="button" onclick="this.nextElementSibling.click()">📂 Importar CSV</button><input type="file" accept=".csv,.txt" id="archivo" class="oculto"></label>
+      <button id="exportar">⬇ Descargar CSV</button>
+      <button class="peligro" id="vaciar">Vaciar lista</button>
+    </div>
+    <div id="pegar" class="oculto" style="margin-top:12px">
+      <textarea id="t-pegar" placeholder="María López	1&#10;Juan Pérez	1&#10;Ana Torres	2"></textarea>
+      <div class="acciones"><button class="oro" id="b-reemplazar">Reemplazar lista con esto</button><button id="b-anadir">Añadir al final</button></div>
+    </div>
+    <div class="resumen" id="resumen"></div>
+    <div class="tabla" style="margin-top:12px"><table><thead><tr><th>#</th><th>Nombre</th><th style="width:110px">Mesa</th><th style="width:170px">Estado</th><th style="width:40px"></th></tr></thead><tbody id="filas"></tbody></table></div>
+    <div class="acciones"><button class="oro" id="g-invitados">Guardar lista de invitados</button><span id="sucio" style="font-size:13px;color:#a3352d"></span></div>
+    <div id="m-invitados"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Durante el evento</h2>
+    <p class="desc">Si alguien eligió el nombre equivocado, quítalo en la tabla de arriba (botón “quitar llegada”). Antes de empezar un evento nuevo, reinicia las llegadas.</p>
+    <div class="acciones" style="margin-top:0"><button class="peligro" id="reiniciar">Reiniciar todas las llegadas</button><span id="llegados" style="font-size:14px"></span></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let clave = sessionStorage.getItem('clave') || '', datos, filas = [], sucio = false;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+async function api(ruta, cuerpo = {}) {
+  const r = await fetch('/api/admin/' + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clave, ...cuerpo }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Error');
+  return d;
+}
+function mensaje(id, ok, txt, avisos = []) {
+  $(id).innerHTML = `<div class="msg ${ok ? 'ok' : 'mal'}">${esc(txt)}</div>` + avisos.map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+}
+
+async function cargar() {
+  datos = await api('lista');
+  sessionStorage.setItem('clave', clave);
+  $('login').classList.add('oculto'); $('panel').classList.remove('oculto');
+  const c = datos.config;
+  $('c-evento').value = c.evento || ''; $('c-sub').value = c.subtitulo || '';
+  $('c-mesas').value = c.mesas; $('c-asientos').value = c.asientosPorMesa;
+  pintarNombres(c.nombresMesas);
+  filas = datos.invitados.map(g => ({ id: g.id, nombre: g.nombre, mesa: g.mesa, llego: g.asiento !== null }));
+  sucio = false; pintarFilas();
+  $('llegados').textContent = `${filas.filter(f => f.llego).length} de ${filas.length} han llegado`;
+}
+$('entrar').onclick = () => { clave = $('clave').value; cargar().catch(e => $('lmsg').textContent = e.message); };
+$('clave').onkeydown = e => e.key === 'Enter' && $('entrar').click();
+
+// ---- configuración ----
+function pintarNombres(nombres = {}) {
+  const prev = {}; document.querySelectorAll('#c-nombres input').forEach(i => prev[i.dataset.m] = i.value);
+  const n = Math.min(40, Math.max(1, parseInt($('c-mesas').value) || 1));
+  let h = ''; for (let m = 1; m <= n; m++) h += `<div><span>Mesa ${m}</span><input data-m="${m}" value="${esc(nombres[m] ?? prev[m] ?? '')}" placeholder="—"></div>`;
+  $('c-nombres').innerHTML = h;
+}
+$('c-mesas').oninput = () => { pintarNombres(); pintarFilas(); };
+$('c-asientos').oninput = () => pintarFilas();
+$('g-config').onclick = async () => {
+  const nombresMesas = {}; document.querySelectorAll('#c-nombres input').forEach(i => { if (i.value.trim()) nombresMesas[i.dataset.m] = i.value.trim(); });
+  try {
+    const nueva = $('c-clave').value.trim();
+    const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
+    if (nueva) { clave = nueva; sessionStorage.setItem('clave', clave); $('c-clave').value = ''; }
+    const pend = sucio; await (pend ? Promise.resolve() : cargar());
+    mensaje('m-config', true, '✓ Guardado. La pantalla ya se actualizó.', d.avisos);
+  } catch (e) { mensaje('m-config', false, e.message); }
+};
+
+// ---- invitados ----
+function pintarFilas() {
+  const nMesas = parseInt($('c-mesas').value) || 1, asientos = parseInt($('c-asientos').value) || 1;
+  $('filas').innerHTML = filas.map((f, i) => `<tr>
+    <td style="color:#aaa">${i + 1}</td>
+    <td><input data-i="${i}" data-k="nombre" value="${esc(f.nombre)}"></td>
+    <td><input data-i="${i}" data-k="mesa" type="number" min="1" max="${nMesas}" value="${f.mesa}"></td>
+    <td>${f.llego ? `<span class="llego">✓ llegó</span> <button class="mini" data-quitar="${f.id}" title="Quitar llegada">quitar llegada</button>` : '<span style="color:#aaa">—</span>'}</td>
+    <td><button class="mini peligro" data-borrar="${i}" title="Eliminar">✕</button></td></tr>`).join('');
+  // resumen por mesa
+  const cuenta = {}; filas.forEach(f => cuenta[f.mesa] = (cuenta[f.mesa] || 0) + 1);
+  let h = `<span><b>${filas.length}</b> invitados · capacidad ${nMesas * asientos}</span>`;
+  for (let m = 1; m <= nMesas; m++) { const c = cuenta[m] || 0; h += `<span class="${c > asientos ? 'mal' : c === asientos ? 'ok' : ''}">Mesa ${m}: ${c}/${asientos}</span>`; }
+  Object.keys(cuenta).filter(m => m > nMesas || m < 1 || isNaN(m)).forEach(m => h += `<span class="mal">Mesa ${esc(m)} no existe: ${cuenta[m]}</span>`);
+  $('resumen').innerHTML = h;
+  $('sucio').textContent = sucio ? '● Cambios sin guardar' : '';
+}
+$('filas').addEventListener('input', e => {
+  const i = e.target.dataset.i; if (i === undefined) return;
+  filas[i][e.target.dataset.k] = e.target.dataset.k === 'mesa' ? parseInt(e.target.value) || '' : e.target.value;
+  sucio = true; clearTimeout(window._t); window._t = setTimeout(() => { const a = document.activeElement, s = a && a.selectionStart; const di = a && a.dataset.i, dk = a && a.dataset.k; pintarFilas(); const n = document.querySelector(`[data-i="${di}"][data-k="${dk}"]`); if (n) { n.focus(); try { n.setSelectionRange(s, s); } catch {} } }, 400);
+});
+$('filas').addEventListener('click', async e => {
+  if (e.target.dataset.borrar !== undefined) { filas.splice(+e.target.dataset.borrar, 1); sucio = true; pintarFilas(); }
+  if (e.target.dataset.quitar) { if (!confirm('¿Quitar la llegada de esta persona? Su asiento quedará libre en la pantalla.')) return; await api('quitar', { id: e.target.dataset.quitar }); await cargar(); }
+});
+$('agregar').onclick = () => { const ultima = filas.length ? filas[filas.length - 1].mesa : 1; filas.push({ nombre: '', mesa: ultima, llego: false }); sucio = true; pintarFilas(); const ins = document.querySelectorAll('#filas input[data-k=nombre]'); ins[ins.length - 1].focus(); };
+$('vaciar').onclick = () => { if (confirm('¿Vaciar toda la lista? (No se guarda hasta que presiones “Guardar”)')) { filas = []; sucio = true; pintarFilas(); } };
+
+function leerTexto(txt) {
+  const lineas = txt.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+  const d = l => l.includes('\t') ? '\t' : (l.split(';').length > l.split(',').length ? ';' : ',');
+  const out = [];
+  for (const l of lineas) {
+    const sep = d(l); const cols = []; let cur = '', q = false;
+    for (let i = 0; i < l.length; i++) { const c = l[i]; if (q) { if (c === '"') { if (l[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; } else if (c === '"') q = true; else if (c === sep) { cols.push(cur); cur = ''; } else cur += c; }
+    cols.push(cur);
+    const nombre = (cols[0] || '').trim(), mesa = parseInt(cols[1]);
+    if (!nombre || isNaN(mesa)) continue; // salta encabezados y filas vacías
+    out.push({ nombre, mesa, llego: false });
+  }
+  return out;
+}
+$('b-pegar').onclick = () => $('pegar').classList.toggle('oculto');
+$('b-reemplazar').onclick = () => { const n = leerTexto($('t-pegar').value); if (!n.length) return alert('No se encontraron filas con nombre y mesa.'); filas = n; sucio = true; pintarFilas(); $('t-pegar').value = ''; $('pegar').classList.add('oculto'); };
+$('b-anadir').onclick = () => { const n = leerTexto($('t-pegar').value); filas.push(...n); sucio = true; pintarFilas(); $('t-pegar').value = ''; $('pegar').classList.add('oculto'); };
+$('archivo').onchange = async e => { const f = e.target.files[0]; if (!f) return; const n = leerTexto(await f.text()); if (!n.length) return alert('No se encontraron filas con nombre y mesa.'); filas = n; sucio = true; pintarFilas(); e.target.value = ''; };
+
+const aCSV = () => 'nombre,mesa\n' + filas.filter(f => String(f.nombre).trim()).map(f => `"${String(f.nombre).trim().replace(/"/g, '""')}",${f.mesa}`).join('\n') + '\n';
+$('exportar').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + aCSV()], { type: 'text/csv' })); a.download = 'invitados.csv'; a.click(); };
+$('g-invitados').onclick = async () => {
+  try { const d = await api('invitados', { csv: aCSV() }); await cargar(); mensaje('m-invitados', true, `✓ Lista guardada: ${d.total} invitados. La pantalla ya se actualizó.`, d.avisos); }
+  catch (e) { mensaje('m-invitados', false, e.message); }
+};
+$('reiniciar').onclick = async () => {
+  if (!confirm('¿Borrar TODAS las llegadas? Todas las sillas quedarán vacías.')) return;
+  await api('reiniciar'); await cargar();
+};
+addEventListener('beforeunload', e => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });
+if (clave) cargar().catch(() => { sessionStorage.removeItem('clave'); });
+</script>
+</body>
+</html>

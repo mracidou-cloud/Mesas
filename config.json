@@ -1,0 +1,8 @@
+{
+  "evento": "Nuestra Celebración",
+  "subtitulo": "Escanea el código y descubre tu mesa",
+  "mesas": 10,
+  "asientosPorMesa": 10,
+  "nombresMesas": {},
+  "claveAdmin": "cambiar123"
+}
