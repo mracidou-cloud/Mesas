@@ -1,164 +1,204 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plano de mesas</title>
+<title>Seating chart</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --fondo:#0e1322; --fondo2:#18203a; --oro:#d6b46f; --oro2:#f1dca6; --marfil:#f6efe0;
-    --tenue:rgba(214,180,111,.38); --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
+    --fondo:#1b0d30; --oro:#e0b04a; --oro2:#f7dc8c; --marfil:#fbf3e2;
+    --tenue:rgba(240,196,98,.5); --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden}
-  body{
-    background:radial-gradient(ellipse at 35% 30%, var(--fondo2) 0%, var(--fondo) 62%) fixed;
-    color:var(--marfil);font-family:var(--sans);
-    display:grid;grid-template-columns:1fr minmax(300px,24vw);height:100vh;
-  }
-  body::before{ /* textura sutil de estrellas */
-    content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
-    background-image:radial-gradient(1px 1px at 12% 18%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 72% 12%,#fff5 50%,transparent 51%),
-      radial-gradient(1px 1px at 44% 82%,#fff4 50%,transparent 51%),radial-gradient(1px 1px at 88% 66%,#fff5 50%,transparent 51%),
-      radial-gradient(1px 1px at 23% 58%,#fff3 50%,transparent 51%),radial-gradient(1px 1px at 61% 41%,#fff3 50%,transparent 51%);
-  }
-  main{display:flex;flex-direction:column;padding:3.2vh 3vw 2.5vh;min-width:0}
-  header{text-align:center;margin-bottom:1.5vh}
-  .adorno{color:var(--oro);letter-spacing:.6em;font-size:clamp(10px,.8vw,14px);font-weight:500;text-transform:uppercase}
-  h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,4vw,82px);line-height:1.05;color:var(--marfil);margin:.6vh 0 .4vh}
-  .sub{font-family:var(--serif);font-style:italic;font-size:clamp(16px,1.45vw,28px);color:var(--oro2);opacity:.85}
-  .plano{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
-  svg#mapa{width:100%;height:100%;overflow:visible}
+  html,body{height:100%;overflow:hidden;background:var(--fondo)}
+  body{color:var(--marfil);font-family:var(--sans)}
 
-  .mesa-base{fill:url(#gMesa);stroke:var(--oro);stroke-width:1.3}
-  .mesa-anillo{fill:none;stroke:var(--tenue);stroke-width:.7;stroke-dasharray:2 3}
-  .mesa-num{font-family:var(--serif);font-size:34px;font-weight:500;fill:var(--marfil);text-anchor:middle;dominant-baseline:central}
-  .mesa-et{font-family:var(--sans);font-size:7.5px;letter-spacing:3px;fill:var(--oro);text-anchor:middle;font-weight:600}
-  .mesa-nom{font-family:var(--serif);font-style:italic;font-size:10px;fill:var(--oro2);text-anchor:middle}
-  .mesa-cont{font-family:var(--sans);font-size:7px;fill:var(--marfil);opacity:.55;text-anchor:middle;letter-spacing:1px}
-  .mesa.activa .mesa-base{stroke:var(--oro2);stroke-width:2.4;filter:url(#brillo)}
+  /* Escenario fijo de 1920x1080 que se escala para llenar cualquier pantalla */
+  #escena{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+  #bg{position:absolute;inset:0;background:var(--fondo) center/cover no-repeat}
+  #fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2s;pointer-events:none}
+  svg#mapa{position:absolute;inset:0;width:1920px;height:1080px;overflow:visible}
+
+  /* Título — arriba a la izquierda */
+  .titulo{position:absolute;left:70px;top:46px;width:560px}
+  .adorno{color:var(--oro);letter-spacing:.55em;font-size:13px;font-weight:600;text-transform:uppercase;opacity:0;animation:aparece 1.2s ease .2s forwards}
+  h1{position:relative;display:inline-block;font-family:var(--serif);font-weight:500;font-size:64px;line-height:1.02;margin:10px 0 8px;
+     text-shadow:0 2px 18px rgba(10,4,24,.7)}
+  h1 .l{display:inline-block;opacity:0;transform:translateY(.35em);filter:blur(8px);animation:letra .9s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes letra{to{opacity:1;transform:none;filter:blur(0)}}
+  h1::after{content:attr(data-texto);position:absolute;inset:0;color:transparent;pointer-events:none;
+    background:linear-gradient(105deg,transparent 42%,rgba(255,232,170,.95) 50%,transparent 58%);background-size:300% 100%;
+    -webkit-background-clip:text;background-clip:text;animation:destello 7s ease-in-out 3s infinite;background-position:150% 0}
+  @keyframes destello{0%{background-position:150% 0}35%,100%{background-position:-50% 0}}
+  .sub{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--oro2);opacity:0;animation:aparece 1.4s ease forwards}
+  .linea-oro{width:0;height:1px;margin-top:14px;background:linear-gradient(90deg,var(--oro),transparent);animation:crece 1.6s ease forwards}
+  @keyframes aparece{to{opacity:.95}}
+  @keyframes crece{to{width:360px}}
+
+  /* QR girado dentro del rombo */
+  #qr-rombo{position:absolute;left:960px;top:540px;width:330px;height:330px;margin:-165px 0 0 -165px;transform:rotate(45deg);
+    background:var(--marfil);border-radius:22px;padding:20px;
+    box-shadow:0 0 0 2px var(--oro),0 0 0 9px rgba(224,176,74,.18),0 0 60px rgba(247,220,140,.25),0 20px 50px rgba(0,0,0,.5);
+    animation:latido 1s ease-out infinite}
+  #qr-rombo img{display:block;width:100%;height:100%;image-rendering:pixelated}
+  @keyframes latido{0%{box-shadow:0 0 0 2px var(--oro2),0 0 0 12px rgba(224,176,74,.25),0 0 90px rgba(247,220,140,.45),0 20px 50px rgba(0,0,0,.5)}}
+
+
+  /* Pulso de luz + bokeh alrededor del QR (late cada 1 segundo) */
+  #halo{position:absolute;left:960px;top:540px;width:0;height:0;pointer-events:none}
+  .resplandor{position:absolute;left:-380px;top:-380px;width:760px;height:760px;border-radius:50%;mix-blend-mode:screen;
+    background:radial-gradient(circle,rgba(255,226,150,.55) 0%,rgba(247,200,110,.22) 32%,rgba(247,200,110,0) 62%);
+    animation:resplandor 1s ease-out infinite}
+  @keyframes resplandor{0%{opacity:1;transform:scale(.9)}100%{opacity:.25;transform:scale(1.12)}}
+  .pulso{position:absolute;left:-165px;top:-165px;width:330px;height:330px;border-radius:26px;border:3px solid rgba(255,236,180,.95);
+    box-shadow:0 0 28px 6px rgba(247,220,140,.75),inset 0 0 26px rgba(247,220,140,.55);animation:pulso 1s cubic-bezier(.2,.6,.3,1) infinite}
+  @keyframes pulso{0%{transform:rotate(45deg) scale(1);opacity:.95}100%{transform:rotate(45deg) scale(1.75);opacity:0}}
+  .bokeh{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:deriva var(--d) ease-in-out infinite alternate}
+  .bokeh i{display:block;width:100%;height:100%;border-radius:50%;
+    background:radial-gradient(circle at 45% 40%,rgba(255,246,210,.95),rgba(250,210,120,.55) 45%,rgba(247,200,110,0) 72%);
+    filter:blur(var(--b));animation:destella 1s ease-in-out infinite;animation-delay:var(--r)}
+  @keyframes destella{0%{opacity:.18;transform:scale(.7)}22%{opacity:1;transform:scale(1.12)}100%{opacity:.18;transform:scale(.7)}}
+  @keyframes deriva{to{transform:translate(var(--x),var(--y))}}
+
+  /* Instrucciones — abajo a la derecha */
+  .instrucciones{position:absolute;right:70px;bottom:52px;width:420px;text-align:right}
+  .instrucciones .t{font-family:var(--serif);font-size:42px;line-height:1.05;font-weight:500;text-shadow:0 2px 14px rgba(10,4,24,.7)}
+  .instrucciones .t em{color:var(--oro2)}
+  .instrucciones .p{font-size:17px;line-height:1.55;margin-top:12px;opacity:.85}
+  .instrucciones .u{font-size:13px;color:var(--oro2);opacity:.8;margin-top:8px;letter-spacing:.03em}
+  .instrucciones .linea{width:240px;height:1px;margin:14px 0 0 auto;background:linear-gradient(270deg,var(--oro),transparent)}
+
+  /* Mesas */
+  .mesa-base{fill:url(#gMesa);stroke:var(--oro);stroke-width:1.6}
+  .mesa-anillo{fill:none;stroke:var(--tenue);stroke-width:.8;stroke-dasharray:2 3}
+  .mesa-num{font-family:var(--serif);font-weight:500;fill:var(--marfil);text-anchor:middle;dominant-baseline:central}
+  .mesa-et{font-family:var(--sans);letter-spacing:3px;fill:var(--oro2);text-anchor:middle;font-weight:600}
+  .mesa-nom{font-family:var(--serif);font-style:italic;fill:var(--oro2);text-anchor:middle}
+  .mesa-cont{font-family:var(--sans);fill:var(--marfil);opacity:.6;text-anchor:middle;letter-spacing:1px}
+  .mesa.activa .mesa-base{stroke:var(--oro2);stroke-width:3;filter:url(#brillo)}
   .mesa.activa .mesa-num{fill:var(--oro2)}
-  .mesa.llena .mesa-base{stroke:var(--oro2)}
-
-  .silla circle{fill:rgba(14,19,34,.6);stroke:var(--tenue);stroke-width:1.1;stroke-dasharray:3 2.2;transition:all .4s}
-  .silla text{font-family:var(--sans);font-weight:600;fill:var(--fondo);text-anchor:middle;dominant-baseline:central;opacity:0}
+  .silla circle{fill:rgba(22,9,40,.75);stroke:var(--tenue);stroke-width:1.2;stroke-dasharray:3 2.2;transition:all .4s}
+  .silla text{font-family:var(--sans);font-weight:600;fill:#2a1405;text-anchor:middle;dominant-baseline:central;opacity:0}
   .silla.ocupada circle{fill:url(#gOro);stroke:var(--oro2);stroke-dasharray:none;stroke-width:1}
   .silla.ocupada text{opacity:1}
-  .silla.nueva{animation:pop .7s cubic-bezier(.3,1.8,.5,1)}
   .silla{transform-box:fill-box;transform-origin:center}
+  .silla.nueva{animation:pop .7s cubic-bezier(.3,1.8,.5,1)}
   @keyframes pop{0%{transform:scale(.2)}60%{transform:scale(1.45)}100%{transform:scale(1)}}
   .onda{fill:none;stroke:var(--oro2);stroke-width:2}
 
-  aside{
-    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
-    border-left:1px solid rgba(214,180,111,.25);padding:4.5vh 2vw 3vh;display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0
-  }
-  .qr-titulo{font-family:var(--serif);font-size:clamp(22px,2vw,40px);line-height:1.1;font-weight:500}
-  .qr-titulo em{color:var(--oro2)}
-  .qr-caja{margin:3vh 0 2vh;padding:clamp(10px,1vw,18px);background:var(--marfil);border-radius:18px;position:relative;
-    box-shadow:0 0 0 1px var(--oro),0 0 0 7px rgba(214,180,111,.12),0 20px 60px rgba(0,0,0,.45);width:min(100%,19vw)}
-  .qr-caja img{display:block;width:100%;image-rendering:pixelated}
-  .qr-pasos{font-size:clamp(11px,.8vw,15px);color:var(--marfil);opacity:.75;line-height:1.7}
-  .qr-url{margin-top:1vh;font-size:clamp(9px,.62vw,12px);color:var(--oro);opacity:.7;word-break:break-all}
-  .contador{margin-top:3.5vh;width:100%}
-  .contador b{font-family:var(--serif);font-weight:500;font-size:clamp(30px,2.6vw,52px);color:var(--oro2)}
-  .contador span{font-size:clamp(10px,.75vw,14px);letter-spacing:.2em;text-transform:uppercase;opacity:.7;display:block}
-  .barra{height:3px;background:rgba(255,255,255,.08);border-radius:3px;margin-top:1.2vh;overflow:hidden}
-  .barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--oro),var(--oro2));transition:width .8s}
-  .recientes{margin-top:3vh;width:100%;flex:1;min-height:0;overflow:hidden}
-  .recientes ul{-webkit-mask-image:linear-gradient(#000 65%,transparent);mask-image:linear-gradient(#000 65%,transparent)}
-  .recientes h3{font-size:clamp(9px,.65vw,12px);letter-spacing:.35em;text-transform:uppercase;color:var(--oro);font-weight:600;margin-bottom:1.2vh}
-  .recientes li{list-style:none;display:flex;justify-content:space-between;gap:1vw;padding:.9vh 0;border-bottom:1px solid rgba(214,180,111,.13);
-    font-family:var(--serif);font-size:clamp(14px,1.05vw,21px);animation:entra .6s ease}
-  .recientes li span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .recientes li span:last-child{color:var(--oro2);white-space:nowrap;font-family:var(--sans);font-size:.7em;letter-spacing:.1em;align-self:center}
-  @keyframes entra{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-
-  /* animación de bienvenida */
-  #velo{position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(8,11,22,.88),rgba(8,11,22,.55));opacity:0;pointer-events:none}
+  /* Bienvenida */
+  #velo{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at center,rgba(16,6,30,.9),rgba(16,6,30,.6));opacity:0;pointer-events:none}
   #volador{position:fixed;left:50%;top:50%;width:0;height:0;opacity:0;pointer-events:none;z-index:10}
   #volador .in{position:absolute;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
-  .v-hola{font-size:clamp(12px,1.1vw,22px);letter-spacing:.55em;text-transform:uppercase;color:var(--oro);font-weight:500}
-  .v-nombre{font-family:var(--serif);font-weight:500;font-size:clamp(48px,6.2vw,128px);line-height:1.1;color:var(--marfil);
-    text-shadow:0 0 40px rgba(241,220,166,.35);margin:1.4vh 0}
+  .v-hola{font-size:clamp(12px,1.1vw,22px);letter-spacing:.55em;text-transform:uppercase;color:var(--oro2);font-weight:500}
+  .v-nombre{font-family:var(--serif);font-weight:500;font-size:clamp(48px,6.2vw,128px);line-height:1.1;color:var(--marfil);text-shadow:0 0 40px rgba(247,220,140,.4);margin:1.4vh 0}
   .v-mesa{font-family:var(--serif);font-style:italic;font-size:clamp(22px,2.4vw,48px);color:var(--oro2)}
   .v-linea{width:12vw;height:1px;margin:2vh auto 0;background:linear-gradient(90deg,transparent,var(--oro),transparent)}
 
-  #ayuda{position:fixed;left:16px;bottom:12px;font-size:12px;opacity:.45;transition:opacity 1s}
-  #conexion{position:fixed;right:12px;top:10px;font-size:12px;padding:4px 10px;border-radius:20px;background:#a33;display:none}
+  #ayuda{position:fixed;left:16px;bottom:10px;font-size:12px;opacity:.45;transition:opacity 1s;z-index:20}
+  #conexion{position:fixed;right:12px;top:10px;font-size:12px;padding:4px 10px;border-radius:20px;background:#a33;display:none;z-index:20}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <div class="adorno">✦ Plano de mesas ✦</div>
+<div id="escena">
+  <div id="bg"></div>
+  <video id="fondo" muted loop playsinline autoplay></video>
+  <svg id="mapa"></svg>
+
+  <div class="titulo">
+    <div class="adorno">✦ Seating chart</div>
     <h1 id="evento">&nbsp;</h1>
     <div class="sub" id="subtitulo"></div>
-  </header>
-  <div class="plano"><svg id="mapa"></svg></div>
-</main>
-<aside>
-  <div class="qr-titulo">Escanea y<br><em>encuentra tu mesa</em></div>
-  <div class="qr-caja"><img id="qr" alt="Código QR"></div>
-  <div class="qr-pasos">Abre la cámara de tu celular,<br>apunta al código y busca tu nombre</div>
-  <div class="qr-url" id="url"></div>
-  <div class="contador">
-    <b id="cuenta">0</b><b style="opacity:.5"> / <span id="total" style="display:inline;letter-spacing:0;font-size:inherit;opacity:1;text-transform:none">0</span></b>
-    <span>invitados han llegado</span>
-    <div class="barra"><i id="progreso"></i></div>
+    <div class="linea-oro"></div>
   </div>
-  <div class="recientes"><h3>Recién llegados</h3><ul id="lista"></ul></div>
-</aside>
 
-<div id="velo"></div>
+  <div id="halo"><div class="resplandor"></div><div class="pulso"></div></div>
+  <div id="qr-rombo"><img id="qr" alt="QR code"></div>
+
+  <div class="instrucciones">
+    <div class="t">Scan to<br><em>find your table</em></div>
+    <div class="p">Open your phone camera, point it at the code in the center and look up your name</div>
+    <div class="linea"></div>
+    <div class="u" id="url"></div>
+  </div>
+  <div id="velo"></div>
+</div>
+
 <div id="volador"><div class="in"></div></div>
-<div id="ayuda">F = pantalla completa · D = simular llegada (prueba)</div>
-<div id="conexion">Sin conexión… reconectando</div>
+<div id="ayuda">F = full screen · D = simulate an arrival (test)</div>
+<div id="conexion">Offline… reconnecting</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/plano.js"></script>
 <script>
 const NS = 'http://www.w3.org/2000/svg';
-let cfg, P, ocupados = new Map(), recientes = [], cola = [], animando = false;
+let cfg, P, ocupados = new Map(), cola = [], animando = false;
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const ruta = v => /^https?:|^\//.test(v) ? v : '/' + v;
+
+// ---- escala del escenario 1920x1080 a la pantalla ----
+function escalar() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  const e = $('escena');
+  e.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px,${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+}
+addEventListener('resize', escalar); escalar();
+
+function animarTitulo(texto) {
+  const h = $('evento'); h.dataset.texto = texto; h.setAttribute('aria-label', texto);
+  h.innerHTML = [...texto].map((c, i) => c === ' ' ? '<span class="l">&nbsp;</span>'
+    : `<span class="l" style="animation-delay:${(0.35 + i * 0.06).toFixed(2)}s">${esc(c)}</span>`).join('');
+  $('subtitulo').style.animationDelay = (0.6 + texto.length * 0.06) + 's';
+  // achicar si el nombre es muy largo
+  const tam = texto.length > 26 ? 44 : texto.length > 18 ? 54 : 64;
+  h.style.fontSize = tam + 'px';
+}
+function ponerFondos() {
+  $('bg').style.backgroundImage = `url("${ruta(cfg.imagenFondo || 'fondo.jpg')}")`;
+  const v = (cfg.videoFondo || '').trim(), vid = $('fondo');
+  if (!v) return;
+  vid.src = ruta(v);
+  vid.oncanplay = () => { vid.style.opacity = (cfg.opacidadFondo ?? 40) / 100; vid.play().catch(() => {}); };
+}
 
 async function iniciar() {
   cfg = await (await fetch('/api/config')).json();
-  $('evento').textContent = cfg.evento; $('subtitulo').textContent = cfg.subtitulo || '';
-  document.title = cfg.evento + ' · Mesas';
+  animarTitulo(cfg.evento); $('subtitulo').textContent = cfg.subtitulo || '';
+  document.title = cfg.evento + ' · Seating';
+  ponerFondos();
   $('qr').src = cfg.qr; $('url').textContent = cfg.urlMovil.replace(/^https?:\/\//, '');
-  $('total').textContent = cfg.total;
   dibujar();
   await sincronizar();
 }
 
 function dibujar() {
-  P = calcularPlano(cfg.mesas, cfg.asientos);
-  const svg = $('mapa'); svg.innerHTML = '';
+  P = calcularEscena(cfg.mesas, cfg.asientos);
+  const svg = $('mapa');
   svg.setAttribute('viewBox', `0 0 ${P.W} ${P.H}`);
   svg.innerHTML = `<defs>
-    <radialGradient id="gMesa" cx="40%" cy="35%"><stop offset="0" stop-color="#2a3354"/><stop offset="1" stop-color="#151b30"/></radialGradient>
-    <radialGradient id="gOro" cx="35%" cy="30%"><stop offset="0" stop-color="#fbedc4"/><stop offset=".55" stop-color="#d6b46f"/><stop offset="1" stop-color="#a9843e"/></radialGradient>
-    <filter id="brillo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="gMesa" cx="40%" cy="35%"><stop offset="0" stop-color="#3d2266"/><stop offset="1" stop-color="#1a0b30"/></radialGradient>
+    <radialGradient id="gOro" cx="35%" cy="30%"><stop offset="0" stop-color="#fff0c2"/><stop offset=".55" stop-color="#e8b44e"/><stop offset="1" stop-color="#b07d22"/></radialGradient>
+    <filter id="brillo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="sombra" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0a0418" flood-opacity=".6"/></filter>
   </defs>`;
-  const fs = Math.max(6, P.rSilla * .68);
+  const s = P.escala, fs = Math.max(6, P.rSilla * .68);
   for (const m of P.mesas) {
-    const g = el('g', { class: 'mesa', id: `mesa-${m.numero}` }, svg);
-    el('circle', { class: 'mesa-anillo', cx: m.cx, cy: m.cy, r: P.R + 8 }, g);
+    const g = el('g', { class: 'mesa', id: `mesa-${m.numero}`, filter: 'url(#sombra)' }, svg);
+    el('circle', { class: 'mesa-anillo', cx: m.cx, cy: m.cy, r: P.R + 8 * s }, g);
     el('circle', { class: 'mesa-base', cx: m.cx, cy: m.cy, r: P.R }, g);
     const nom = cfg.nombresMesas[m.numero];
-    el('text', { class: 'mesa-et', x: m.cx, y: m.cy - 20 }, g).textContent = 'MESA';
-    el('text', { class: 'mesa-num', x: m.cx, y: m.cy + (nom ? -1 : 2) }, g).textContent = m.numero;
-    if (nom) el('text', { class: 'mesa-nom', x: m.cx, y: m.cy + 22 }, g).textContent = nom.length > 14 ? nom.slice(0, 13) + '…' : nom;
-    el('text', { class: 'mesa-cont', x: m.cx, y: m.cy + (nom ? 34 : 28), id: `cont-${m.numero}` }, g).textContent = `0/${cfg.asientos}`;
-    m.sillas.forEach((s, i) => {
+    el('text', { class: 'mesa-et', x: m.cx, y: m.cy - 20 * s, 'font-size': 7.5 * s }, g).textContent = 'TABLE';
+    el('text', { class: 'mesa-num', x: m.cx, y: m.cy + (nom ? -1 : 2) * s, 'font-size': 34 * s }, g).textContent = m.numero;
+    if (nom) el('text', { class: 'mesa-nom', x: m.cx, y: m.cy + 22 * s, 'font-size': 10 * s }, g).textContent = nom.length > 14 ? nom.slice(0, 13) + '…' : nom;
+    el('text', { class: 'mesa-cont', x: m.cx, y: m.cy + (nom ? 34 : 28) * s, id: `cont-${m.numero}`, 'font-size': 7 * s }, g).textContent = `0/${cfg.asientos}`;
+    m.sillas.forEach((p, i) => {
       const sg = el('g', { class: 'silla', id: `s-${m.numero}-${i}` }, svg);
-      el('circle', { cx: s.x, cy: s.y, r: P.rSilla }, sg);
-      el('text', { x: s.x, y: s.y + .5, 'font-size': fs }, sg);
+      el('circle', { cx: p.x, cy: p.y, r: P.rSilla }, sg);
+      el('text', { x: p.x, y: p.y + .5, 'font-size': fs }, sg);
     });
   }
 }
@@ -166,8 +206,6 @@ function dibujar() {
 async function sincronizar() {
   const lista = await (await fetch('/api/estado')).json();
   for (const g of lista) if (!ocupados.has(g.id)) ocupar(g, false);
-  recientes = lista.sort((a, b) => b.hora - a.hora).slice(0, 8);
-  pintarRecientes(); contar();
 }
 
 function ocupar(g, nueva) {
@@ -179,35 +217,21 @@ function ocupar(g, nueva) {
   }
   const n = [...ocupados.values()].filter(x => x.mesa === g.mesa).length;
   const c = $(`cont-${g.mesa}`); if (c) c.textContent = `${n}/${cfg.asientos}`;
-  const mesa = $(`mesa-${g.mesa}`); if (mesa) mesa.classList.toggle('llena', n >= cfg.asientos);
 }
-
 function onda(s) {
   const c = s.querySelector('circle');
   const o = el('circle', { class: 'onda', cx: c.getAttribute('cx'), cy: c.getAttribute('cy'), r: P.rSilla }, $('mapa'));
   o.animate([{ r: P.rSilla, opacity: 1 }, { r: P.rSilla * 4, opacity: 0 }], { duration: 1100, easing: 'ease-out' }).onfinish = () => o.remove();
 }
 
-function contar() {
-  $('cuenta').textContent = ocupados.size;
-  $('progreso').style.width = (100 * ocupados.size / Math.max(cfg.total, 1)) + '%';
-}
-function pintarRecientes() {
-  $('lista').innerHTML = recientes.map(g => `<li><span>${esc(g.nombre)}</span><span>MESA ${g.mesa}</span></li>`).join('');
-}
-
 function encolar(g) { if (ocupados.has(g.id) || cola.some(x => x.id === g.id)) return; cola.push(g); if (!animando) procesar(); }
-async function procesar() {
-  animando = true;
-  while (cola.length) { await animar(cola.shift()); }
-  animando = false;
-}
+async function procesar() { animando = true; while (cola.length) await animar(cola.shift()); animando = false; }
 
 async function animar(g) {
-  const prisa = cola.length >= 2; // si hay fila, más rápido
+  const prisa = cola.length >= 2;
   const vol = $('volador'), inner = vol.querySelector('.in'), velo = $('velo');
   const nomMesa = cfg.nombresMesas[g.mesa] ? ` · ${esc(cfg.nombresMesas[g.mesa])}` : '';
-  inner.innerHTML = `<div class="v-hola">Te damos la bienvenida</div><div class="v-nombre">${esc(g.nombre)}</div><div class="v-mesa">Mesa ${g.mesa}${nomMesa}</div><div class="v-linea"></div>`;
+  inner.innerHTML = `<div class="v-hola">Welcome</div><div class="v-nombre">${esc(g.nombre)}</div><div class="v-mesa">Table ${g.mesa}${nomMesa}</div><div class="v-linea"></div>`;
   const mesaEl = $(`mesa-${g.mesa}`);
   velo.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'forwards' });
   await vol.animate([
@@ -216,7 +240,6 @@ async function animar(g) {
   ], { duration: 800, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }).finished;
   mesaEl && mesaEl.classList.add('activa');
   await sleep(prisa ? 900 : 2000);
-
   const destino = $(`s-${g.mesa}-${g.asiento}`) || mesaEl;
   const r = destino.getBoundingClientRect();
   const dx = r.left + r.width / 2 - innerWidth / 2, dy = r.top + r.height / 2 - innerHeight / 2;
@@ -227,12 +250,27 @@ async function animar(g) {
     { opacity: .9, transform: `translate(${dx}px,${dy}px) scale(.06)` }
   ], { duration: prisa ? 900 : 1300, easing: 'cubic-bezier(.55,0,.35,1)', fill: 'forwards' }).finished;
   vol.animate([{ opacity: .9 }, { opacity: 0 }], { duration: 150, fill: 'forwards' });
-
   ocupar(g, true);
-  recientes.unshift(g); recientes = recientes.slice(0, 8); pintarRecientes(); contar();
   await sleep(prisa ? 500 : 1100);
   mesaEl && mesaEl.classList.remove('activa');
 }
+
+
+// bokeh: luces suaves alrededor del QR que destellan con cada pulso
+function crearBokeh() {
+  const halo = $('halo');
+  for (let i = 0; i < 30; i++) {
+    const ang = Math.random() * Math.PI * 2, rad = 190 + Math.random() * 230;
+    const tam = 8 + Math.random() * Math.random() * 46;
+    const b = document.createElement('div'); b.className = 'bokeh';
+    b.style.cssText = `left:${Math.cos(ang) * rad - tam / 2}px;top:${Math.sin(ang) * rad - tam / 2}px;width:${tam}px;height:${tam}px;` +
+      `--d:${5 + Math.random() * 6}s;--x:${(Math.random() - .5) * 40}px;--y:${(Math.random() - .5) * 40}px`;
+    // la onda de luz sale del centro: las luces más lejanas destellan un poco después
+    b.innerHTML = `<i style="--b:${(tam > 30 ? 2.5 : 1) + Math.random()}px;--r:${((rad - 190) / 230 * .35).toFixed(2)}s"></i>`;
+    halo.appendChild(b);
+  }
+}
+crearBokeh();
 
 // ---- tiempo real ----
 const socket = io();
@@ -246,15 +284,14 @@ let demoN = 0;
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
-  if (k === 'd') { // simulación local: no guarda nada
+  if (k === 'd') {
     const m = 1 + Math.floor(Math.random() * cfg.mesas);
     const libres = [...Array(cfg.asientos).keys()].filter(i => ![...ocupados.values()].some(x => x.mesa === m && x.asiento === i));
     if (!libres.length) return;
-    encolar({ id: 'demo' + (++demoN), nombre: ['Invitado de Prueba', 'Mariana Ortiz', 'José Luis Reyes', 'Ana Sofía Cruz'][demoN % 4], mesa: m, asiento: libres[0], hora: Date.now() });
+    encolar({ id: 'demo' + (++demoN), nombre: ['Test Guest', 'Emily Carter', 'James Walker', 'Sophia Bennett'][demoN % 4], mesa: m, asiento: libres[0], hora: Date.now() });
   }
 });
 setTimeout(() => $('ayuda').style.opacity = 0, 8000);
-// mantener la pantalla encendida si el navegador lo permite
 if ('wakeLock' in navigator) { const pedir = () => navigator.wakeLock.request('screen').catch(() => {}); pedir(); document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && pedir()); }
 
 iniciar();

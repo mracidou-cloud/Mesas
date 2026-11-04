@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Administración · Mesas</title>
+<title>Admin · Seating chart</title>
 <style>
   :root{--oro:#c49f55;--tinta:#1a2036;--gris:#7d7869;--borde:#e6dcc6;--fondo:#f7f2e7}
   *{box-sizing:border-box}
@@ -45,57 +45,72 @@
 </style>
 </head>
 <body>
-<header><h1>⚙️ Administración del plano de mesas</h1>
-  <nav><a href="/pantalla" target="_blank">Abrir pantalla ↗</a><a href="/m" target="_blank">Vista celular ↗</a></nav></header>
+<header><h1>⚙️ Seating chart admin</h1>
+  <nav><a href="/pantalla" target="_blank">Open screen ↗</a><a href="/m" target="_blank">Phone view ↗</a></nav></header>
 
 <div id="login" class="card">
-  <h2>Entrar</h2><p class="desc">Escribe la clave de administración (está en <code>config.json</code>).</p>
-  <input id="clave" type="password" placeholder="Clave">
-  <div class="acciones"><button class="oro" id="entrar">Entrar</button></div>
+  <h2>Sign in</h2><p class="desc">Enter the admin password (it’s in <code>config.json</code>).</p>
+  <input id="clave" type="password" placeholder="Password">
+  <div class="acciones"><button class="oro" id="entrar">Sign in</button></div>
   <div class="msg mal" id="lmsg"></div>
 </div>
 
 <div class="wrap oculto" id="panel">
 
   <div class="card">
-    <h2>1. Datos del evento</h2>
-    <p class="desc">Cambia el nombre, cuántas mesas hay y cuántas personas caben en cada una. La pantalla se redibuja sola al guardar.</p>
+    <h2>1. Event details</h2>
+    <p class="desc">Change the name, how many tables there are and how many guests fit at each one. The screen redraws itself when you save.</p>
     <div class="grid">
-      <div><label>Nombre del evento</label><input id="c-evento"></div>
-      <div><label>Subtítulo (opcional)</label><input id="c-sub"></div>
-      <div><label>Cantidad de mesas</label><input id="c-mesas" type="number" min="1" max="40"></div>
-      <div><label>Invitados por mesa</label><input id="c-asientos" type="number" min="1" max="20"></div>
+      <div><label>Event name</label><input id="c-evento"></div>
+      <div><label>Subtitle (optional)</label><input id="c-sub"></div>
+      <div><label>Number of tables</label><input id="c-mesas" type="number" min="1" max="40"></div>
+      <div><label>Guests per table</label><input id="c-asientos" type="number" min="1" max="20"></div>
     </div>
-    <div style="margin-top:16px"><label>Nombres de mesas (opcional — ej. “Novios”, “Familia”)</label><div class="nombres" id="c-nombres"></div></div>
-    <div style="margin-top:16px;max-width:300px"><label>Cambiar clave de admin (opcional)</label><input id="c-clave" type="password" placeholder="Dejar vacío para no cambiar"></div>
-    <div class="acciones"><button class="oro" id="g-config">Guardar datos del evento</button></div>
+    <div style="margin-top:16px"><label>Table names (optional — e.g. “Couple”, “Family”)</label><div class="nombres" id="c-nombres"></div></div>
+    <div style="margin-top:16px;display:none"><label>Couple video (optional)</label>
+      <input id="c-video" placeholder="YouTube link, link to an .mp4, or a file name uploaded to the public folder (e.g. couple.mp4)">
+      <div style="font-size:12px;color:var(--gris);margin-top:5px">If left empty, an animation of a dancing couple is shown.</div></div>
+    <div style="margin-top:12px;display:none"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="c-deco" style="width:auto"> Show couple video / dancing couple on screen</label></div>
+    <div class="grid" style="margin-top:16px;grid-template-columns:2fr 1fr">
+      <div><label>Background image</label><input id="c-img" placeholder="fondo.jpg"></div><div></div>
+      <div><label>Background video (optional)</label><input id="c-fondo" placeholder="e.g. background.mp4 (uploaded to the public folder) or a link to an .mp4"></div>
+      <div><label>Background opacity: <span id="c-op-val"></span>%</label><input id="c-op" type="range" min="0" max="100" step="5" style="padding:0"></div>
+    </div>
+    <div style="margin-top:16px;max-width:300px"><label>Change admin password (optional)</label><input id="c-clave" type="password" placeholder="Leave empty to keep it"></div>
+    <div class="acciones"><button class="oro" id="g-config">Save event details</button></div>
     <div id="m-config"></div>
   </div>
 
   <div class="card">
-    <h2>2. Lista de invitados</h2>
-    <p class="desc">Edita aquí, o pega directamente desde Excel / Google Sheets dos columnas: <b>nombre</b> y <b>mesa</b>.</p>
+    <h2>2. Guest list</h2>
+    <p class="desc">Edit here, or paste two columns straight from Excel / Google Sheets: <b>name</b> and <b>table</b>.</p>
     <div class="acciones" style="margin-top:0">
-      <button id="agregar">+ Agregar invitado</button>
-      <button id="b-pegar">📋 Pegar desde Excel</button>
-      <label style="margin:0;font-size:inherit;font-weight:inherit"><button type="button" onclick="this.nextElementSibling.click()">📂 Importar CSV</button><input type="file" accept=".csv,.txt" id="archivo" class="oculto"></label>
-      <button id="exportar">⬇ Descargar CSV</button>
-      <button class="peligro" id="vaciar">Vaciar lista</button>
+      <button id="agregar">+ Add guest</button>
+      <button id="b-pegar">📋 Paste from Excel</button>
+      <label style="margin:0;font-size:inherit;font-weight:inherit"><button type="button" onclick="this.nextElementSibling.click()">📂 Import CSV</button><input type="file" accept=".csv,.txt" id="archivo" class="oculto"></label>
+      <button id="exportar">⬇ Download CSV</button>
+      <button class="peligro" id="vaciar">Clear list</button>
     </div>
     <div id="pegar" class="oculto" style="margin-top:12px">
-      <textarea id="t-pegar" placeholder="María López	1&#10;Juan Pérez	1&#10;Ana Torres	2"></textarea>
-      <div class="acciones"><button class="oro" id="b-reemplazar">Reemplazar lista con esto</button><button id="b-anadir">Añadir al final</button></div>
+      <textarea id="t-pegar" placeholder="Emily Carter	1&#10;James Walker	1&#10;Sophia Bennett	2"></textarea>
+      <div class="acciones"><button class="oro" id="b-reemplazar">Replace list with this</button><button id="b-anadir">Add to the end</button></div>
     </div>
     <div class="resumen" id="resumen"></div>
-    <div class="tabla" style="margin-top:12px"><table><thead><tr><th>#</th><th>Nombre</th><th style="width:110px">Mesa</th><th style="width:170px">Estado</th><th style="width:40px"></th></tr></thead><tbody id="filas"></tbody></table></div>
-    <div class="acciones"><button class="oro" id="g-invitados">Guardar lista de invitados</button><span id="sucio" style="font-size:13px;color:#a3352d"></span></div>
+    <div class="tabla" style="margin-top:12px"><table><thead><tr><th>#</th><th>Name</th><th style="width:110px">Table</th><th style="width:170px">Status</th><th style="width:40px"></th></tr></thead><tbody id="filas"></tbody></table></div>
+    <div class="acciones"><button class="oro" id="g-invitados">Save guest list</button><span id="sucio" style="font-size:13px;color:#a3352d"></span></div>
     <div id="m-invitados"></div>
   </div>
 
+  <div class="card" style="border-color:#f0d99a;background:#fffbf0">
+    <h2>💾 Save permanently</h2>
+    <p class="desc">On Render’s free plan, changes made here are lost when the service restarts or “goes to sleep”. When you finish setting things up, download these two files and upload them to your GitHub repository (replacing the old ones).</p>
+    <div class="acciones" style="margin-top:0"><button id="d-config">⬇ Download config.json</button><button id="d-csv">⬇ Download invitados.csv</button></div>
+  </div>
+
   <div class="card">
-    <h2>3. Durante el evento</h2>
-    <p class="desc">Si alguien eligió el nombre equivocado, quítalo en la tabla de arriba (botón “quitar llegada”). Antes de empezar un evento nuevo, reinicia las llegadas.</p>
-    <div class="acciones" style="margin-top:0"><button class="peligro" id="reiniciar">Reiniciar todas las llegadas</button><span id="llegados" style="font-size:14px"></span></div>
+    <h2>3. During the event</h2>
+    <p class="desc">If someone picked the wrong name, remove it in the table above (“undo check-in” button). Before starting a new event, reset all check-ins.</p>
+    <div class="acciones" style="margin-top:0"><button class="peligro" id="reiniciar">Reset all check-ins</button><span id="llegados" style="font-size:14px"></span></div>
   </div>
 </div>
 
@@ -120,32 +135,33 @@ async function cargar() {
   $('login').classList.add('oculto'); $('panel').classList.remove('oculto');
   const c = datos.config;
   $('c-evento').value = c.evento || ''; $('c-sub').value = c.subtitulo || '';
-  $('c-mesas').value = c.mesas; $('c-asientos').value = c.asientosPorMesa;
+  $('c-mesas').value = c.mesas; $('c-video').value = c.video || ''; $('c-deco').checked = c.decoracion !== false; $('c-fondo').value = c.videoFondo || ''; $('c-img').value = c.imagenFondo || 'fondo.jpg'; $('c-op').value = c.opacidadFondo ?? 40; $('c-op-val').textContent = $('c-op').value; $('c-asientos').value = c.asientosPorMesa;
   pintarNombres(c.nombresMesas);
   filas = datos.invitados.map(g => ({ id: g.id, nombre: g.nombre, mesa: g.mesa, llego: g.asiento !== null }));
   sucio = false; pintarFilas();
-  $('llegados').textContent = `${filas.filter(f => f.llego).length} de ${filas.length} han llegado`;
+  $('llegados').textContent = `${filas.filter(f => f.llego).length} of ${filas.length} have arrived`;
 }
 $('entrar').onclick = () => { clave = $('clave').value; cargar().catch(e => $('lmsg').textContent = e.message); };
-$('clave').onkeydown = e => e.key === 'Enter' && $('entrar').click();
+$('clave').addEventListener('keydown', e => { if (e.key === 'Enter') $('entrar').click(); });
 
 // ---- configuración ----
 function pintarNombres(nombres = {}) {
   const prev = {}; document.querySelectorAll('#c-nombres input').forEach(i => prev[i.dataset.m] = i.value);
   const n = Math.min(40, Math.max(1, parseInt($('c-mesas').value) || 1));
-  let h = ''; for (let m = 1; m <= n; m++) h += `<div><span>Mesa ${m}</span><input data-m="${m}" value="${esc(nombres[m] ?? prev[m] ?? '')}" placeholder="—"></div>`;
+  let h = ''; for (let m = 1; m <= n; m++) h += `<div><span>Table ${m}</span><input data-m="${m}" value="${esc(nombres[m] ?? prev[m] ?? '')}" placeholder="—"></div>`;
   $('c-nombres').innerHTML = h;
 }
+$('c-op').oninput = () => $('c-op-val').textContent = $('c-op').value;
 $('c-mesas').oninput = () => { pintarNombres(); pintarFilas(); };
 $('c-asientos').oninput = () => pintarFilas();
 $('g-config').onclick = async () => {
   const nombresMesas = {}; document.querySelectorAll('#c-nombres input').forEach(i => { if (i.value.trim()) nombresMesas[i.dataset.m] = i.value.trim(); });
   try {
     const nueva = $('c-clave').value.trim();
-    const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
+    const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, video: $('c-video').value, decoracion: $('c-deco').checked, videoFondo: $('c-fondo').value, imagenFondo: $('c-img').value, opacidadFondo: $('c-op').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
     if (nueva) { clave = nueva; sessionStorage.setItem('clave', clave); $('c-clave').value = ''; }
     const pend = sucio; await (pend ? Promise.resolve() : cargar());
-    mensaje('m-config', true, '✓ Guardado. La pantalla ya se actualizó.', d.avisos);
+    mensaje('m-config', true, '✓ Saved. The screen has been updated.', d.avisos);
   } catch (e) { mensaje('m-config', false, e.message); }
 };
 
@@ -156,15 +172,15 @@ function pintarFilas() {
     <td style="color:#aaa">${i + 1}</td>
     <td><input data-i="${i}" data-k="nombre" value="${esc(f.nombre)}"></td>
     <td><input data-i="${i}" data-k="mesa" type="number" min="1" max="${nMesas}" value="${f.mesa}"></td>
-    <td>${f.llego ? `<span class="llego">✓ llegó</span> <button class="mini" data-quitar="${f.id}" title="Quitar llegada">quitar llegada</button>` : '<span style="color:#aaa">—</span>'}</td>
-    <td><button class="mini peligro" data-borrar="${i}" title="Eliminar">✕</button></td></tr>`).join('');
+    <td>${f.llego ? `<span class="llego">✓ arrived</span> <button class="mini" data-quitar="${f.id}" title="Undo check-in">undo check-in</button>` : '<span style="color:#aaa">—</span>'}</td>
+    <td><button class="mini peligro" data-borrar="${i}" title="Delete">✕</button></td></tr>`).join('');
   // resumen por mesa
   const cuenta = {}; filas.forEach(f => cuenta[f.mesa] = (cuenta[f.mesa] || 0) + 1);
-  let h = `<span><b>${filas.length}</b> invitados · capacidad ${nMesas * asientos}</span>`;
-  for (let m = 1; m <= nMesas; m++) { const c = cuenta[m] || 0; h += `<span class="${c > asientos ? 'mal' : c === asientos ? 'ok' : ''}">Mesa ${m}: ${c}/${asientos}</span>`; }
-  Object.keys(cuenta).filter(m => m > nMesas || m < 1 || isNaN(m)).forEach(m => h += `<span class="mal">Mesa ${esc(m)} no existe: ${cuenta[m]}</span>`);
+  let h = `<span><b>${filas.length}</b> guests · capacity ${nMesas * asientos}</span>`;
+  for (let m = 1; m <= nMesas; m++) { const c = cuenta[m] || 0; h += `<span class="${c > asientos ? 'mal' : c === asientos ? 'ok' : ''}">Table ${m}: ${c}/${asientos}</span>`; }
+  Object.keys(cuenta).filter(m => m > nMesas || m < 1 || isNaN(m)).forEach(m => h += `<span class="mal">Table ${esc(m)} doesn’t exist: ${cuenta[m]}</span>`);
   $('resumen').innerHTML = h;
-  $('sucio').textContent = sucio ? '● Cambios sin guardar' : '';
+  $('sucio').textContent = sucio ? '● Unsaved changes' : '';
 }
 $('filas').addEventListener('input', e => {
   const i = e.target.dataset.i; if (i === undefined) return;
@@ -173,10 +189,10 @@ $('filas').addEventListener('input', e => {
 });
 $('filas').addEventListener('click', async e => {
   if (e.target.dataset.borrar !== undefined) { filas.splice(+e.target.dataset.borrar, 1); sucio = true; pintarFilas(); }
-  if (e.target.dataset.quitar) { if (!confirm('¿Quitar la llegada de esta persona? Su asiento quedará libre en la pantalla.')) return; await api('quitar', { id: e.target.dataset.quitar }); await cargar(); }
+  if (e.target.dataset.quitar) { if (!confirm('Undo this guest’s check-in? Their seat will be freed on the screen.')) return; await api('quitar', { id: e.target.dataset.quitar }); await cargar(); }
 });
 $('agregar').onclick = () => { const ultima = filas.length ? filas[filas.length - 1].mesa : 1; filas.push({ nombre: '', mesa: ultima, llego: false }); sucio = true; pintarFilas(); const ins = document.querySelectorAll('#filas input[data-k=nombre]'); ins[ins.length - 1].focus(); };
-$('vaciar').onclick = () => { if (confirm('¿Vaciar toda la lista? (No se guarda hasta que presiones “Guardar”)')) { filas = []; sucio = true; pintarFilas(); } };
+$('vaciar').onclick = () => { if (confirm('Clear the whole list? (Nothing is saved until you press “Save”)')) { filas = []; sucio = true; pintarFilas(); } };
 
 function leerTexto(txt) {
   const lineas = txt.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
@@ -193,18 +209,21 @@ function leerTexto(txt) {
   return out;
 }
 $('b-pegar').onclick = () => $('pegar').classList.toggle('oculto');
-$('b-reemplazar').onclick = () => { const n = leerTexto($('t-pegar').value); if (!n.length) return alert('No se encontraron filas con nombre y mesa.'); filas = n; sucio = true; pintarFilas(); $('t-pegar').value = ''; $('pegar').classList.add('oculto'); };
+$('b-reemplazar').onclick = () => { const n = leerTexto($('t-pegar').value); if (!n.length) return alert('No rows with a name and table were found.'); filas = n; sucio = true; pintarFilas(); $('t-pegar').value = ''; $('pegar').classList.add('oculto'); };
 $('b-anadir').onclick = () => { const n = leerTexto($('t-pegar').value); filas.push(...n); sucio = true; pintarFilas(); $('t-pegar').value = ''; $('pegar').classList.add('oculto'); };
-$('archivo').onchange = async e => { const f = e.target.files[0]; if (!f) return; const n = leerTexto(await f.text()); if (!n.length) return alert('No se encontraron filas con nombre y mesa.'); filas = n; sucio = true; pintarFilas(); e.target.value = ''; };
+$('archivo').onchange = async e => { const f = e.target.files[0]; if (!f) return; const n = leerTexto(await f.text()); if (!n.length) return alert('No rows with a name and table were found.'); filas = n; sucio = true; pintarFilas(); e.target.value = ''; };
 
-const aCSV = () => 'nombre,mesa\n' + filas.filter(f => String(f.nombre).trim()).map(f => `"${String(f.nombre).trim().replace(/"/g, '""')}",${f.mesa}`).join('\n') + '\n';
+const bajar = (nombre, texto, tipo) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto], { type: tipo })); a.download = nombre; a.click(); };
+$('d-csv').onclick = () => bajar('invitados.csv', aCSV(), 'text/csv');
+$('d-config').onclick = async () => bajar('config.json', JSON.stringify(await api('config.json'), null, 2), 'application/json');
+const aCSV = () => 'name,table\n' + filas.filter(f => String(f.nombre).trim()).map(f => `"${String(f.nombre).trim().replace(/"/g, '""')}",${f.mesa}`).join('\n') + '\n';
 $('exportar').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + aCSV()], { type: 'text/csv' })); a.download = 'invitados.csv'; a.click(); };
 $('g-invitados').onclick = async () => {
-  try { const d = await api('invitados', { csv: aCSV() }); await cargar(); mensaje('m-invitados', true, `✓ Lista guardada: ${d.total} invitados. La pantalla ya se actualizó.`, d.avisos); }
+  try { const d = await api('invitados', { csv: aCSV() }); await cargar(); mensaje('m-invitados', true, `✓ List saved: ${d.total} guests. The screen has been updated.`, d.avisos); }
   catch (e) { mensaje('m-invitados', false, e.message); }
 };
 $('reiniciar').onclick = async () => {
-  if (!confirm('¿Borrar TODAS las llegadas? Todas las sillas quedarán vacías.')) return;
+  if (!confirm('Delete ALL check-ins? Every seat will be empty again.')) return;
   await api('reiniciar'); await cargar();
 };
 addEventListener('beforeunload', e => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });

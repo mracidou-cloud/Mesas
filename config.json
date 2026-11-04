@@ -1,8 +1,13 @@
 {
-  "evento": "Nuestra Celebración",
-  "subtitulo": "Escanea el código y descubre tu mesa",
+  "evento": "Our Celebration",
+  "subtitulo": "Scan the code to find your table",
   "mesas": 10,
   "asientosPorMesa": 10,
   "nombresMesas": {},
-  "claveAdmin": "cambiar123"
+  "video": "",
+  "decoracion": true,
+  "videoFondo": "",
+  "opacidadFondo": 40,
+  "claveAdmin": "cambiar123",
+  "imagenFondo": "fondo.jpg"
 }

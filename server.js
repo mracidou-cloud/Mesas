@@ -42,7 +42,7 @@ function parseLinea(linea, d) {
 function cargarInvitados(txt = fs.readFileSync(GUESTS_FILE, 'utf8'), avisos = []) {
   txt = txt.replace(/^\uFEFF/, '');
   const lineas = txt.split(/\r?\n/).filter(l => l.trim());
-  if (!lineas.length) throw new Error('La lista de invitados está vacía');
+  if (!lineas.length) throw new Error('The guest list is empty');
   // Excel en español suele guardar con ";"
   const d = (lineas[0].split(';').length > lineas[0].split(',').length) ? ';' : ',';
   const cab = parseLinea(lineas[0], d).map(slug);
@@ -59,7 +59,7 @@ function cargarInvitados(txt = fs.readFileSync(GUESTS_FILE, 'utf8'), avisos = []
     const nombre = (cols[iNom] || '').replace(/\s+/g, ' ').trim();
     const mesa = parseInt(cols[iMesa], 10);
     if (!nombre) continue;
-    if (!Number.isInteger(mesa) || mesa < 1) { avisos.push(`Línea ${k + 1}: "${nombre}" no tiene una mesa válida — se omitió.`); continue; }
+    if (!Number.isInteger(mesa) || mesa < 1) { avisos.push(`Line ${k + 1}: "${nombre}" has no valid table — skipped.`); continue; }
     let id = slug(nombre) || 'invitado', n = 2;
     while (ids.has(id)) id = `${slug(nombre)}-${n++}`;
     ids.add(id);
@@ -67,8 +67,8 @@ function cargarInvitados(txt = fs.readFileSync(GUESTS_FILE, 'utf8'), avisos = []
     porMesa[mesa] = (porMesa[mesa] || 0) + 1;
   }
   for (const [m, c] of Object.entries(porMesa)) {
-    if (c > ASIENTOS) avisos.push(`La mesa ${m} tiene ${c} invitados pero solo ${ASIENTOS} asientos.`);
-    if (Number(m) > (Number(config.mesas) || 0)) avisos.push(`Hay invitados en la mesa ${m}, pero el evento tiene ${config.mesas} mesas.`);
+    if (c > ASIENTOS) avisos.push(`Table ${m} has ${c} guests but only ${ASIENTOS} seats.`);
+    if (Number(m) > (Number(config.mesas) || 0)) avisos.push(`There are guests at table ${m}, but the event only has ${config.mesas} tables.`);
   }
   avisos.forEach(a => console.warn('⚠  ' + a));
   return lista;
@@ -141,7 +141,7 @@ app.get('/api/config', async (_, res) => {
     margin: 1, width: 600, errorCorrectionLevel: 'M', color: { dark: '#141a2b', light: '#fbf7ee' },
   });
   res.json({
-    evento: config.evento, subtitulo: config.subtitulo,
+    evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg',
     mesas: NUM_MESAS, asientos: ASIENTOS, nombresMesas: config.nombresMesas || {},
     total: invitados.length, urlMovil: URL_MOVIL, qr: qrCache,
   });
@@ -152,13 +152,13 @@ app.get('/api/invitados', (_, res) => res.json(invitados.map(g => ({ id: g.id, n
 
 app.post('/api/llegada', (req, res) => {
   const g = porId.get(req.body && req.body.id);
-  if (!g) return res.status(404).json({ error: 'No encontramos ese nombre.' });
+  if (!g) return res.status(404).json({ error: 'We couldn’t find that name.' });
   const ya = !!llegadas[g.id];
   if (!ya) {
     llegadas[g.id] = { asiento: asientoLibre(g.mesa), hora: Date.now(), mesa: g.mesa };
     guardar();
     io.emit('llegada', publico(g));
-    console.log(`✓ ${g.nombre} → mesa ${g.mesa}`);
+    console.log(`✓ ${g.nombre} → table ${g.mesa}`);
   }
   res.json({ ...publico(g), ya });
 });
@@ -166,21 +166,21 @@ app.post('/api/llegada', (req, res) => {
 // ---- admin ----
 const autorizado = req => req.body && req.body.clave === config.claveAdmin;
 app.post('/api/admin/lista', (req, res) => {
-  if (!autorizado(req)) return res.status(401).json({ error: 'Clave incorrecta' });
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   res.json({
     invitados: invitados.map(publico),
-    config: { evento: config.evento, subtitulo: config.subtitulo, mesas: Number(config.mesas), asientosPorMesa: ASIENTOS, nombresMesas: config.nombresMesas || {} },
+    config: { evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg', mesas: Number(config.mesas), asientosPorMesa: ASIENTOS, nombresMesas: config.nombresMesas || {} },
     csv: fs.readFileSync(GUESTS_FILE, 'utf8').replace(/^\uFEFF/, ''),
   });
 });
 
 // Guardar configuración del evento
 app.post('/api/admin/config', (req, res) => {
-  if (!autorizado(req)) return res.status(401).json({ error: 'Clave incorrecta' });
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   const c = req.body.config || {};
   const mesas = parseInt(c.mesas, 10), asientos = parseInt(c.asientosPorMesa, 10);
-  if (!(mesas >= 1 && mesas <= 40)) return res.status(400).json({ error: 'Las mesas deben ser entre 1 y 40.' });
-  if (!(asientos >= 1 && asientos <= 20)) return res.status(400).json({ error: 'Los asientos por mesa deben ser entre 1 y 20.' });
+  if (!(mesas >= 1 && mesas <= 40)) return res.status(400).json({ error: 'Tables must be between 1 and 40.' });
+  if (!(asientos >= 1 && asientos <= 20)) return res.status(400).json({ error: 'Seats per table must be between 1 and 20.' });
   const nombres = {};
   for (const [k, v] of Object.entries(c.nombresMesas || {})) {
     const n = parseInt(k, 10);
@@ -188,8 +188,13 @@ app.post('/api/admin/config', (req, res) => {
   }
   config = {
     ...config,
-    evento: String(c.evento || '').trim().slice(0, 80) || 'Nuestro Evento',
+    evento: String(c.evento || '').trim().slice(0, 80) || 'Our Event',
     subtitulo: String(c.subtitulo || '').trim().slice(0, 120),
+    video: String(c.video || '').trim().slice(0, 500),
+    decoracion: c.decoracion !== false,
+    videoFondo: String(c.videoFondo || '').trim().slice(0, 500),
+    imagenFondo: String(c.imagenFondo || '').trim().slice(0, 500) || 'fondo.jpg',
+    opacidadFondo: Math.max(0, Math.min(100, parseInt(c.opacidadFondo, 10) || 0)),
     mesas, asientosPorMesa: asientos, nombresMesas: nombres,
   };
   if (c.claveAdmin && String(c.claveAdmin).trim()) config.claveAdmin = String(c.claveAdmin).trim();
@@ -203,31 +208,37 @@ app.post('/api/admin/config', (req, res) => {
 
 // Reemplazar la lista de invitados (texto CSV: nombre,mesa)
 app.post('/api/admin/invitados', (req, res) => {
-  if (!autorizado(req)) return res.status(401).json({ error: 'Clave incorrecta' });
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   const avisos = [];
   let lista;
   try { lista = cargarInvitados(String(req.body.csv || ''), avisos); }
   catch (e) { return res.status(400).json({ error: e.message }); }
-  if (!lista.length) return res.status(400).json({ error: 'No se encontró ningún invitado válido.' });
+  if (!lista.length) return res.status(400).json({ error: 'No valid guests were found.' });
   fs.writeFileSync(GUESTS_FILE, String(req.body.csv));
   aplicarInvitados(lista);
   limpiarLlegadas(); guardar(); io.emit('reinicio');
   res.json({ ok: true, total: lista.length, avisos });
 });
+
+// Descargar config.json (para subirlo a GitHub y que no se pierda)
+app.post('/api/admin/config.json', (req, res) => {
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
+  res.json(config);
+});
 app.post('/api/admin/quitar', (req, res) => {
-  if (!autorizado(req)) return res.status(401).json({ error: 'Clave incorrecta' });
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   delete llegadas[req.body.id]; guardar(); io.emit('reinicio');
   res.json({ ok: true });
 });
 app.post('/api/admin/reiniciar', (req, res) => {
-  if (!autorizado(req)) return res.status(401).json({ error: 'Clave incorrecta' });
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   llegadas = {}; guardar(); io.emit('reinicio');
   res.json({ ok: true });
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  ${config.evento} — ${invitados.length} invitados en ${NUM_MESAS} mesas\n`);
-  console.log(`  Pantalla del evento:  http://localhost:${PORT}/pantalla`);
-  console.log(`  Celulares (QR):       ${URL_MOVIL}`);
-  console.log(`  Administración:       http://localhost:${PORT}/admin\n`);
+  console.log(`\n  ${config.evento} — ${invitados.length} guests at ${NUM_MESAS} tables\n`);
+  console.log(`  Event screen:   http://localhost:${PORT}/pantalla`);
+  console.log(`  Phones (QR):    ${URL_MOVIL}`);
+  console.log(`  Admin:          http://localhost:${PORT}/admin\n`);
 });
