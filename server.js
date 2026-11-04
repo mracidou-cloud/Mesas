@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const QRCode = require('qrcode');
+const gh = require('./github');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 3000;
@@ -97,6 +98,13 @@ function guardar() {
   fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
   fs.writeFileSync(STATE_FILE + '.tmp', JSON.stringify(llegadas, null, 1));
   fs.renameSync(STATE_FILE + '.tmp', STATE_FILE);
+  gh.subirLuego('data/llegadas.json', () => JSON.stringify(llegadas, null, 1), 'Update check-ins');
+}
+// sube un archivo a GitHub y devuelve un texto de estado para la página de admin
+async function aGitHub(ruta, texto, mensaje) {
+  if (!gh.activo) return 'off';
+  try { await gh.subir(ruta, texto, mensaje); return 'saved'; }
+  catch (e) { console.warn('⚠  ' + e.message); return 'error: ' + e.message; }
 }
 
 function asientoLibre(mesa) {
@@ -171,11 +179,12 @@ app.post('/api/admin/lista', (req, res) => {
     invitados: invitados.map(publico),
     config: { evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg', mesas: Number(config.mesas), asientosPorMesa: ASIENTOS, nombresMesas: config.nombresMesas || {} },
     csv: fs.readFileSync(GUESTS_FILE, 'utf8').replace(/^\uFEFF/, ''),
+    github: { activo: gh.activo, repo: gh.REPO },
   });
 });
 
 // Guardar configuración del evento
-app.post('/api/admin/config', (req, res) => {
+app.post('/api/admin/config', async (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   const c = req.body.config || {};
   const mesas = parseInt(c.mesas, 10), asientos = parseInt(c.asientosPorMesa, 10);
@@ -203,11 +212,12 @@ app.post('/api/admin/config', (req, res) => {
   const avisos = [];
   aplicarInvitados(cargarInvitados(undefined, avisos));
   limpiarLlegadas(); guardar(); io.emit('reinicio');
-  res.json({ ok: true, avisos });
+  const github = await aGitHub('config.json', JSON.stringify(config, null, 2), 'Update event settings');
+  res.json({ ok: true, avisos, github });
 });
 
 // Reemplazar la lista de invitados (texto CSV: nombre,mesa)
-app.post('/api/admin/invitados', (req, res) => {
+app.post('/api/admin/invitados', async (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   const avisos = [];
   let lista;
@@ -217,7 +227,8 @@ app.post('/api/admin/invitados', (req, res) => {
   fs.writeFileSync(GUESTS_FILE, String(req.body.csv));
   aplicarInvitados(lista);
   limpiarLlegadas(); guardar(); io.emit('reinicio');
-  res.json({ ok: true, total: lista.length, avisos });
+  const github = await aGitHub('invitados.csv', String(req.body.csv), 'Update guest list');
+  res.json({ ok: true, total: lista.length, avisos, github });
 });
 
 // Descargar config.json (para subirlo a GitHub y que no se pierda)

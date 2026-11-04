@@ -28,7 +28,21 @@ Open **/admin**:
 - **Guest list:** edit it there, or paste two columns from Excel / Google Sheets (**name** | **table**).
 - **During the event:** “undo check-in” for wrong picks; “Reset all check-ins” before a new event.
 
-**Render free plan:** changes made in /admin are lost when the service restarts or sleeps. After setting up, use **💾 Save permanently** to download `config.json` and `invitados.csv`, and upload them to your GitHub repository.
+## Auto-save to GitHub (recommended)
+
+On Render’s free plan, files changed on the server are lost when it restarts or sleeps. With auto-save ON, every change made in /admin (event details, guest list, check-ins) is saved to your GitHub repository automatically, and loaded back when the service starts.
+
+1. GitHub → your photo → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Repository access: **Only select repositories** → your repo. Permissions → **Contents: Read and write**. Generate and copy the token.
+3. Render → your service → **Environment** → add:
+   - `GITHUB_TOKEN` = the token
+   - `GITHUB_REPO` = `your-user/your-repo`
+   - (optional) `GITHUB_BRANCH` if your branch isn’t `main`
+4. Save. Render restarts; /admin shows “Auto-save to GitHub is ON”.
+
+Commits made by the app include `[skip render]`, so saving does not restart the service.
+
+Without auto-save, use **💾 Save permanently** to download `config.json` and `invitados.csv` and upload them to GitHub yourself.
 
 ## Files
 

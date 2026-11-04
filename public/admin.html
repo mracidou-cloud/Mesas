@@ -103,7 +103,8 @@
 
   <div class="card" style="border-color:#f0d99a;background:#fffbf0">
     <h2>💾 Save permanently</h2>
-    <p class="desc">On Render’s free plan, changes made here are lost when the service restarts or “goes to sleep”. When you finish setting things up, download these two files and upload them to your GitHub repository (replacing the old ones).</p>
+    <div id="gh-estado"></div>
+    <p class="desc" id="gh-manual">On Render’s free plan, changes made here are lost when the service restarts or “goes to sleep”. When you finish setting things up, download these two files and upload them to your GitHub repository (replacing the old ones).</p>
     <div class="acciones" style="margin-top:0"><button id="d-config">⬇ Download config.json</button><button id="d-csv">⬇ Download invitados.csv</button></div>
   </div>
 
@@ -129,6 +130,7 @@ function mensaje(id, ok, txt, avisos = []) {
   $(id).innerHTML = `<div class="msg ${ok ? 'ok' : 'mal'}">${esc(txt)}</div>` + avisos.map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
 }
 
+const ghTexto = g => g === 'saved' ? ' Saved to GitHub ✓' : g && g.startsWith('error') ? ' ⚠ Could NOT save to GitHub (' + g.slice(7) + ')' : '';
 async function cargar() {
   datos = await api('lista');
   sessionStorage.setItem('clave', clave);
@@ -139,6 +141,11 @@ async function cargar() {
   pintarNombres(c.nombresMesas);
   filas = datos.invitados.map(g => ({ id: g.id, nombre: g.nombre, mesa: g.mesa, llego: g.asiento !== null }));
   sucio = false; pintarFilas();
+  const g = datos.github || {};
+  $('gh-estado').innerHTML = g.activo
+    ? `<div class="msg ok" style="margin:0 0 10px;font-weight:600">✓ Auto-save to GitHub is ON (${esc(g.repo)}). Every change you save here is stored in GitHub automatically — nothing else to do.</div>`
+    : `<div class="aviso" style="margin:0 0 10px">Auto-save to GitHub is OFF. To turn it on, add <b>GITHUB_TOKEN</b> and <b>GITHUB_REPO</b> in Render → Environment (see README).</div>`;
+  $('gh-manual').style.display = g.activo ? 'none' : '';
   $('llegados').textContent = `${filas.filter(f => f.llego).length} of ${filas.length} have arrived`;
 }
 $('entrar').onclick = () => { clave = $('clave').value; cargar().catch(e => $('lmsg').textContent = e.message); };
@@ -161,7 +168,7 @@ $('g-config').onclick = async () => {
     const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, video: $('c-video').value, decoracion: $('c-deco').checked, videoFondo: $('c-fondo').value, imagenFondo: $('c-img').value, opacidadFondo: $('c-op').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
     if (nueva) { clave = nueva; sessionStorage.setItem('clave', clave); $('c-clave').value = ''; }
     const pend = sucio; await (pend ? Promise.resolve() : cargar());
-    mensaje('m-config', true, '✓ Saved. The screen has been updated.', d.avisos);
+    mensaje('m-config', true, '✓ Saved. The screen has been updated.' + ghTexto(d.github), d.avisos);
   } catch (e) { mensaje('m-config', false, e.message); }
 };
 
@@ -219,7 +226,7 @@ $('d-config').onclick = async () => bajar('config.json', JSON.stringify(await ap
 const aCSV = () => 'name,table\n' + filas.filter(f => String(f.nombre).trim()).map(f => `"${String(f.nombre).trim().replace(/"/g, '""')}",${f.mesa}`).join('\n') + '\n';
 $('exportar').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + aCSV()], { type: 'text/csv' })); a.download = 'invitados.csv'; a.click(); };
 $('g-invitados').onclick = async () => {
-  try { const d = await api('invitados', { csv: aCSV() }); await cargar(); mensaje('m-invitados', true, `✓ List saved: ${d.total} guests. The screen has been updated.`, d.avisos); }
+  try { const d = await api('invitados', { csv: aCSV() }); await cargar(); mensaje('m-invitados', true, `✓ List saved: ${d.total} guests. The screen has been updated.` + ghTexto(d.github), d.avisos); }
   catch (e) { mensaje('m-invitados', false, e.message); }
 };
 $('reiniciar').onclick = async () => {
