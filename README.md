@@ -13,6 +13,21 @@ An event screen: the tables start empty. A guest scans the QR code with their ph
 | `/m` | The phone page (where the QR code leads) |
 | `/admin` | Event settings and guest list (default password: `cambiar123`) |
 
+## Screen designs
+
+Each design is saved as its own file in `public/disenos/` (one doesn’t affect the others). Pick one in /admin → **Screen design**; the screen switches right away.
+
+| Design | Look | Wishes wall |
+|---|---|---|
+| **Elegant** (`elegant`) | Purple & gold background, tilted QR in a diamond frame | ✓ |
+| **Soft clay** (`clay`) | Pastel, rounded “clay” style, colorful tables | ✓ |
+| **Navy ring** (`ring`) | Navy & gold, tables in a ring around the QR, dancing couple | — |
+| **Classic** (`classic`) | Navy & gold, table grid, side panel with QR, counter and recent arrivals | — |
+
+**Layout editor** (/admin → 4. Layout): drag each table and the QR code to where you want them in the Elegant and Soft clay designs, then press *Save layout*. Tables that overlap something turn red. *Reset to automatic* puts everything back. Classic and Navy ring arrange their tables automatically.
+
+Preview any design at `/pantalla/<id>` (e.g. `/pantalla/clay`). The phone page follows the chosen design.
+
 ## Run locally
 
 ```
@@ -44,12 +59,19 @@ Commits made by the app include `[skip render]`, so saving does not restart the 
 
 Without auto-save, use **💾 Save permanently** to download `config.json` and `invitados.csv` and upload them to GitHub yourself.
 
+## Wishes wall ✍️
+
+After checking in, guests can tap **“Leave a wish”**, write or draw a short message with their finger, and send it. It appears big on the screen with their name, then joins a column on the right that keeps scrolling up; the wish passing through the middle is shown larger so people can read it.
+
+In /admin → **4. Wishes wall**: turn it on/off, see all wishes, and delete any of them (it disappears from the screen right away).
+
 ## Files
 
 - `config.json`: event settings
 - `invitados.csv`: guest list (`name,table`)
 - `public/fondo.jpg`: background image
-- `data/llegadas.json`: who has checked in (resets on Render restarts)
+- `data/llegadas.json`: who has checked in
+- `data/mensajes/`: the guests’ wishes (one file per guest)
 
 ## Notes
 

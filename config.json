@@ -9,5 +9,7 @@
   "videoFondo": "",
   "opacidadFondo": 40,
   "claveAdmin": "cambiar123",
-  "imagenFondo": "fondo.jpg"
+  "imagenFondo": "fondo.jpg",
+  "mensajes": true,
+  "tema": "clay"
 }

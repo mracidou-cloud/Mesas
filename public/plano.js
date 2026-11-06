@@ -57,7 +57,8 @@ function calcularAnillo(nMesas, asientos) {
 // Escena 1920x1080 para el fondo con el rombo dorado en el centro.
 // Las mesas van en dos arcos a los lados del rombo, con simetría girada (como las hojas del fondo):
 // el arco izquierdo un poco más abajo y el derecho un poco más arriba.
-function calcularEscena(nMesas, asientos) {
+// pos (opcional) = posiciones guardadas desde el editor: { mesas: { "1": {x, y}, ... }, qr: {x, y} }
+function calcularEscena(nMesas, asientos, pos) {
   const W = 1920, H = 1080, cx = 960, cy = 540;
   const nIzq = Math.floor(nMesas / 2), nDer = nMesas - nIzq;
   const nMax = Math.max(nDer, 1);
@@ -69,7 +70,7 @@ function calcularEscena(nMesas, asientos) {
   const lado = (n, signo, yc) => {
     for (let i = 0; i < n; i++) {
       const u = n === 1 ? 0 : -1 + 2 * i / (n - 1);
-      const d = 700 - 230 * u * u;
+      const d = 470 - 150 * u * u;
       mesas.push({ cx: cx + signo * d, cy: yc + u * span / 2 });
     }
   };
@@ -79,14 +80,19 @@ function calcularEscena(nMesas, asientos) {
   // numerar en sentido del reloj: derecha de arriba a abajo, luego izquierda de abajo a arriba
   const der = mesas.slice(0, tmp), izqs = mesas.slice(tmp).reverse();
   const orden = der.concat(izqs);
+  const fija = k => pos && pos.mesas && pos.mesas[k] && isFinite(pos.mesas[k].x) && isFinite(pos.mesas[k].y) ? pos.mesas[k] : null;
+  const qr = pos && pos.qr && isFinite(pos.qr.x) && isFinite(pos.qr.y) ? { x: +pos.qr.x, y: +pos.qr.y } : { x: cx, y: cy };
   return {
-    W, H, R, rSilla, escala: s, cx, cy,
-    mesas: orden.map((m, k) => ({
-      numero: k + 1, cx: m.cx, cy: m.cy,
-      sillas: Array.from({ length: asientos }, (_, j) => {
-        const a = -Math.PI / 2 + j * 2 * Math.PI / asientos;
-        return { x: m.cx + rAs * Math.cos(a), y: m.cy + rAs * Math.sin(a) };
-      }),
-    })),
+    W, H, R, rSilla, escala: s, cx, cy, qr, alcance: rAs + rSilla,
+    mesas: orden.map((m, k) => {
+      const f = fija(k + 1), mx = f ? +f.x : m.cx, my = f ? +f.y : m.cy;
+      return {
+        numero: k + 1, cx: mx, cy: my, auto: { x: m.cx, y: m.cy },
+        sillas: Array.from({ length: asientos }, (_, j) => {
+          const a = -Math.PI / 2 + j * 2 * Math.PI / asientos;
+          return { x: mx + rAs * Math.cos(a), y: my + rAs * Math.sin(a) };
+        }),
+      };
+    }),
   };
 }

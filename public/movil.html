@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#1b0d30">
 <title>Find your table</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600&family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{--fondo:#1b0d30;--oro:#d6b46f;--oro2:#f1dca6;--marfil:#f8f2e6;--tinta:#1a2036;--gris:#8a8576;
     --serif:'Cormorant Garamond',Georgia,serif;--sans:'Montserrat',system-ui,sans-serif}
@@ -53,6 +53,57 @@
   .m-silla{fill:none;stroke:#7a6040;stroke-width:1}
   .m-silla.tu{fill:#f7dc8c;stroke:#fff;stroke-width:3;animation:late 1.2s infinite}
   @keyframes late{50%{opacity:.35}}
+
+  /* mural de deseos */
+  .deseo-box{margin-top:18px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#2a1548,#1b0d30);color:var(--marfil);text-align:center;display:none}
+  .deseo-box p{font-size:14px;opacity:.85;margin:4px 0 0}
+  .deseo-box .btn{margin-top:12px}
+  .deseo-box .listo{color:var(--oro2);font-weight:600}
+  .pad{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#3a1d63,#1b0d30);
+    box-shadow:inset 0 0 0 1.5px #c9a04a;height:min(62vw,300px);touch-action:none}
+  .pad canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+  .pad .guia{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(247,220,140,.4);font-family:var(--serif);font-style:italic;font-size:24px;pointer-events:none}
+  .herr{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .color{width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px #d8cdb4;padding:0}
+  .color.on{box-shadow:0 0 0 3px #c49f55}
+  .grosor{width:34px;height:34px;border-radius:50%;border:1.5px solid #e3d8c0;background:#fff;display:flex;align-items:center;justify-content:center;padding:0}
+  .grosor i{display:block;border-radius:50%;background:var(--tinta)}
+  .grosor.on{border-color:#c49f55;box-shadow:0 0 0 2px rgba(196,159,85,.35)}
+  .herr .sep{flex:1}
+  .mini-btn{font:inherit;font-size:14px;font-weight:600;padding:8px 12px;border-radius:10px;border:1.5px solid #e6dcc6;background:#fff;color:var(--gris)}
+
+  .tema-ring svg#mini,.tema-classic svg#mini{background:#141a2d}
+  /* ===== Tema "Soft clay" (pastel) ===== */
+  body.clay{--serif:'Fredoka','Nunito',sans-serif;--sans:'Nunito',sans-serif;--tinta:#4b3428;--gris:#8a6b58;--oro:#ef8a6a;background:#f7efe3;font-family:var(--sans)}
+  .clay .top{background:linear-gradient(160deg,#b7d4bc,#9ec2a6);border-radius:0 0 36px 36px;box-shadow:inset 0 -8px 16px rgba(60,100,70,.15)}
+  .clay .adorno{color:#fff;letter-spacing:.3em;font-weight:800}
+  .clay .top h1{font-weight:600;text-shadow:0 2px 4px rgba(60,100,70,.25)}
+  .clay .card{border-radius:30px;border:0;background:#fdf8f0;box-shadow:0 22px 40px rgba(122,88,58,.14),inset 0 3px 0 #fff,inset 0 -8px 16px rgba(122,88,58,.06)}
+  .clay h2,.clay .grande,.clay .resultado .nombre{font-weight:600}
+  .clay input{border-radius:18px;border-color:#eadcc8;background:#fff}
+  .clay input:focus{border-color:#f6bfa8;box-shadow:0 0 0 4px rgba(246,191,168,.3)}
+  .clay li button::after{color:#ef8a6a}
+  .clay .btn{border-radius:20px}
+  .clay .btn.oro{background:linear-gradient(180deg,#f6a487,#ef8a6a);color:#fff;box-shadow:inset 0 3px 0 rgba(255,255,255,.4),inset 0 -6px 10px rgba(160,70,40,.2),0 10px 20px rgba(239,138,106,.35)}
+  .clay .btn.claro{border-color:#eadcc8;color:#8a6b58}
+  .clay .hola{color:#ef8a6a;letter-spacing:.25em;font-weight:800}
+  .clay .medalla{background:radial-gradient(circle at 35% 28%,#cfe5d2,#a8c9ae 62%,#7fa98a);color:#4b3428;
+    box-shadow:inset 0 5px 0 rgba(255,255,255,.55),inset 0 -12px 20px rgba(60,100,70,.2),0 20px 36px rgba(95,143,110,.35)}
+  .clay .medalla small{color:#fff;font-weight:800}
+  .clay .medalla b{color:#4b3428;font-weight:600}
+  .clay .nmesa{color:#5f8f6e;font-style:normal;font-weight:600}
+  .clay svg#mini{background:#f3e8da;padding:10px}
+  .clay .m-base{stroke:#fff;stroke-width:2}
+  .clay .m-num{fill:#4b3428;font-family:'Fredoka',sans-serif;font-weight:600}
+  .clay .m-tu .m-base{stroke:#ef8a6a;stroke-width:6}
+  .clay .m-silla{stroke:#d8c5ad;fill:#fffaf2}
+  .clay .m-silla.tu{fill:#ef8a6a;stroke:#fff}
+  .clay .deseo-box{background:linear-gradient(160deg,#ffe0d2,#f6bfa8);color:#4b3428;border-radius:26px}
+  .clay .deseo-box .listo{color:#5f8f6e}
+  .clay .pad{background:#fffaf2;box-shadow:inset 0 0 0 2px #eadcc8,inset 0 6px 14px rgba(122,88,58,.08);border-radius:24px}
+  .clay .pad .guia{color:rgba(138,107,88,.4)}
+  .clay .color{border-color:#fff;box-shadow:0 0 0 1.5px #eadcc8}
+  .clay .color.on{box-shadow:0 0 0 3px #ef8a6a}
   .error{color:#a3352d;text-align:center;font-size:14px;margin-top:10px;min-height:1em}
   .otros{margin-top:18px;font-size:13px;color:var(--gris);text-align:center;line-height:1.7}
   .otros b{color:var(--tinta);font-weight:600}
@@ -86,9 +137,34 @@
     <div class="medalla"><small>TABLE</small><b id="r-num"></b></div>
     <div class="nmesa" id="r-nmesa"></div>
     <div class="mira">✨ Look at the big screen ✨</div>
+    <div class="deseo-box" id="deseo-box">
+      <div style="font-family:var(--serif);font-size:24px;font-weight:600">Leave a wish ✍️</div>
+      <p id="deseo-txt">Write a message with your finger and it will appear on the big screen, next to your seat.</p>
+      <button class="btn oro" id="abrir-deseo">Write my wish</button>
+    </div>
     <svg id="mini"></svg>
     <button class="btn claro" id="otro">Check in someone else</button>
     <div class="otros" id="otros"></div>
+  </section>
+
+  <section class="vista" id="v-deseo">
+    <h2>Leave a wish</h2>
+    <p class="ayuda">Write or draw with your finger</p>
+    <div class="pad" id="pad"><canvas id="lienzo"></canvas><div class="guia" id="guia">Write here…</div></div>
+    <div class="herr" id="colores">
+      <button class="color on" data-c="#f7dc8c" style="background:#f7dc8c" aria-label="Gold"></button>
+      <button class="color" data-c="#fbf3e2" style="background:#fbf3e2" aria-label="White"></button>
+      <button class="color" data-c="#f4a6c1" style="background:#f4a6c1" aria-label="Pink"></button>
+      <button class="color" data-c="#a8d8ff" style="background:#a8d8ff" aria-label="Blue"></button>
+      <span class="sep"></span>
+      <button class="grosor" data-g="3" aria-label="Thin"><i style="width:5px;height:5px"></i></button>
+      <button class="grosor on" data-g="5" aria-label="Medium"><i style="width:9px;height:9px"></i></button>
+      <button class="grosor" data-g="9" aria-label="Thick"><i style="width:14px;height:14px"></i></button>
+    </div>
+    <div class="herr"><button class="mini-btn" id="deshacer">↶ Undo</button><button class="mini-btn" id="limpiar">Clear</button></div>
+    <button class="btn oro" id="enviar-deseo">Send to the big screen ✨</button>
+    <button class="btn claro" id="cancelar-deseo">Cancel</button>
+    <div class="error" id="err-deseo"></div>
   </section>
 
 </div></div>
@@ -105,6 +181,15 @@ function vista(id) { document.querySelectorAll('.vista').forEach(v => v.classLis
 async function iniciar() {
   [cfg, invitados] = await Promise.all([fetch('/api/config').then(r => r.json()), fetch('/api/invitados').then(r => r.json())]);
   $('evento').textContent = cfg.evento; document.title = cfg.evento;
+  document.body.classList.add('tema-' + cfg.tema);
+  if (cfg.tema === 'clay') {
+    document.body.classList.add('clay');
+    document.querySelector('meta[name=theme-color]').content = '#a8c9ae';
+    // tintas oscuras para escribir sobre el papel crema
+    const tintas = ['#4b3428', '#ef8a6a', '#5f8f6e', '#6f93b8'];
+    document.querySelectorAll('.color').forEach((b, i) => { b.dataset.c = tintas[i]; b.style.background = tintas[i]; });
+    color = tintas[0];
+  }
   invitados.forEach(g => g.n = normalizar(g.nombre));
   const prev = guardados();
   if (prev.length) mostrar(prev[prev.length - 1], false);
@@ -141,23 +226,103 @@ $('otro').onclick = () => { $('q').value = ''; $('res').innerHTML = ''; vista('v
 function mostrar(d, nuevo) {
   $('r-nombre').textContent = d.nombre;
   $('r-num').textContent = d.mesa;
+  if (cfg.tema === 'clay') {
+    const c = [['#cfe5d2', '#a8c9ae', '#7fa98a'], ['#ffe0d2', '#f6bfa8', '#e09a80'], ['#fff1c6', '#f7d98f', '#e2b85c'], ['#dbe8f5', '#b3cbe3', '#8aa9c9'],
+      ['#ffd2c4', '#f29b7f', '#d97558'], ['#f1e1f2', '#d9bfdc', '#b898bc'], ['#d9efe6', '#b9dccf', '#8fbfac'], ['#ffdfe5', '#f4b6c2', '#d98e9e']][(d.mesa - 1) % 8];
+    document.querySelector('.medalla').style.background = `radial-gradient(circle at 35% 28%,${c[0]},${c[1]} 62%,${c[2]})`;
+  }
   $('r-nmesa').textContent = d.nombreMesa || cfg.nombresMesas[d.mesa] || '';
   mini(d);
   const otros = guardados().filter(x => x.id !== d.id);
   $('otros').innerHTML = otros.length ? 'Also checked in from this phone:<br>' + otros.map(x => `<b>${esc(x.nombre)}</b> — table ${x.mesa}`).join('<br>') : '';
+  actual = d;
+  const box = $('deseo-box');
+  box.style.display = cfg.mensajes ? 'block' : 'none';
+  const enviado = deseosEnviados().includes(d.id);
+  $('deseo-txt').innerHTML = enviado ? '<span class="listo">✓ Your wish is on the big screen!</span>' : 'Write a message with your finger and it will appear on the big screen, next to your seat.';
+  $('abrir-deseo').textContent = enviado ? 'Write a new one' : 'Write my wish';
   vista('v-mesa');
   if (nuevo && navigator.vibrate) navigator.vibrate([60, 40, 60]);
 }
 
 function mini(d) {
-  const P = calcularEscena(cfg.mesas, cfg.asientos), svg = $('mini');
+  const P = (cfg.tema === 'ring' ? calcularAnillo : cfg.tema === 'classic' ? calcularPlano : calcularEscena)(cfg.mesas, cfg.asientos, (cfg.posiciones || {})[cfg.tema]), svg = $('mini');
   svg.setAttribute('viewBox', `0 0 ${P.W} ${P.H}`);
   svg.innerHTML = P.mesas.map(m => {
     const tu = m.numero === d.mesa;
     const sillas = m.sillas.map((s, i) => `<circle class="m-silla ${tu && i === d.asiento ? 'tu' : ''}" cx="${s.x}" cy="${s.y}" r="${P.rSilla * .85}"/>`).join('');
-    return `<g class="${tu ? 'm-tu' : ''}"><circle class="m-base" cx="${m.cx}" cy="${m.cy}" r="${P.R}"/><text class="m-num" x="${m.cx}" y="${m.cy}">${m.numero}</text>${sillas}</g>`;
+    const relleno = cfg.tema === 'clay' ? ` style="fill:${['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'][(m.numero - 1) % 8]}"` : '';
+    return `<g class="${tu ? 'm-tu' : ''}"><circle class="m-base" cx="${m.cx}" cy="${m.cy}" r="${P.R}"${relleno}/><text class="m-num" x="${m.cx}" y="${m.cy}">${m.numero}</text>${sillas}</g>`;
   }).join('');
 }
+
+// ---------- mural de deseos: lienzo para escribir con el dedo ----------
+let actual = null, trazos = [], trazo = null, color = '#f7dc8c', grosor = 5;
+const CLAVE_DESEOS = 'mesas-deseos';
+const deseosEnviados = () => { try { return JSON.parse(localStorage.getItem(CLAVE_DESEOS)) || []; } catch { return []; } };
+const lienzo = $('lienzo'), ctx = lienzo.getContext('2d');
+
+function ajustarLienzo() {
+  const r = lienzo.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  lienzo.width = Math.round(r.width * dpr); lienzo.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); redibujar();
+}
+function pintarTrazo(c, t, k = 1, ox = 0, oy = 0) {
+  const p = t.p; if (!p.length) return;
+  c.strokeStyle = t.c; c.fillStyle = t.c; c.lineWidth = t.g * k; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.shadowColor = t.c; c.shadowBlur = 4 * k;
+  if (p.length === 1) { c.beginPath(); c.arc((p[0][0] - ox) * k, (p[0][1] - oy) * k, t.g * k / 2, 0, Math.PI * 2); c.fill(); return; }
+  c.beginPath(); c.moveTo((p[0][0] - ox) * k, (p[0][1] - oy) * k);
+  for (let i = 1; i < p.length - 1; i++) {
+    const mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2;
+    c.quadraticCurveTo((p[i][0] - ox) * k, (p[i][1] - oy) * k, (mx - ox) * k, (my - oy) * k);
+  }
+  const u = p[p.length - 1]; c.lineTo((u[0] - ox) * k, (u[1] - oy) * k); c.stroke();
+}
+function redibujar() {
+  ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+  trazos.forEach(t => pintarTrazo(ctx, t));
+  $('guia').style.display = trazos.length ? 'none' : 'flex';
+}
+const punto = e => { const r = lienzo.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+lienzo.addEventListener('pointerdown', e => { e.preventDefault(); lienzo.setPointerCapture(e.pointerId); trazo = { c: color, g: grosor, p: [punto(e)] }; trazos.push(trazo); redibujar(); });
+lienzo.addEventListener('pointermove', e => { if (!trazo) return; e.preventDefault(); trazo.p.push(punto(e)); redibujar(); });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => lienzo.addEventListener(ev, () => { trazo = null; }));
+
+$('colores').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.c) { color = b.dataset.c; document.querySelectorAll('.color').forEach(x => x.classList.toggle('on', x === b)); }
+  if (b.dataset.g) { grosor = +b.dataset.g; document.querySelectorAll('.grosor').forEach(x => x.classList.toggle('on', x === b)); }
+});
+$('deshacer').onclick = () => { trazos.pop(); redibujar(); };
+$('limpiar').onclick = () => { trazos = []; redibujar(); };
+$('abrir-deseo').onclick = () => { trazos = []; $('err-deseo').textContent = ''; vista('v-deseo'); requestAnimationFrame(ajustarLienzo); };
+$('cancelar-deseo').onclick = () => vista('v-mesa');
+addEventListener('resize', () => { if ($('v-deseo').classList.contains('on')) ajustarLienzo(); });
+
+// recorta el dibujo a su tamaño real y lo exporta como PNG transparente
+function exportar() {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  trazos.forEach(t => t.p.forEach(([x, y]) => { x0 = Math.min(x0, x - t.g); y0 = Math.min(y0, y - t.g); x1 = Math.max(x1, x + t.g); y1 = Math.max(y1, y + t.g); }));
+  const pad = 10; x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
+  const w = x1 - x0, h = y1 - y0, k = Math.min(3, 640 / Math.max(w, h));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  const cx = c.getContext('2d'); trazos.forEach(t => pintarTrazo(cx, t, k, x0, y0));
+  return c.toDataURL('image/png');
+}
+$('enviar-deseo').onclick = async () => {
+  if (!trazos.length) { $('err-deseo').textContent = 'Write something first ✍️'; return; }
+  const b = $('enviar-deseo'); b.disabled = true; $('err-deseo').textContent = '';
+  try {
+    const r = await fetch('/api/mensaje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: actual.id, img: exportar() }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Error');
+    const l = deseosEnviados(); if (!l.includes(actual.id)) l.push(actual.id); localStorage.setItem(CLAVE_DESEOS, JSON.stringify(l));
+    if (navigator.vibrate) navigator.vibrate(80);
+    mostrar(actual, false);
+  } catch (e) { $('err-deseo').textContent = e.message === 'Error' ? 'We couldn’t send it. Check your connection and try again.' : e.message; }
+  finally { b.disabled = false; }
+};
 
 iniciar();
 </script>

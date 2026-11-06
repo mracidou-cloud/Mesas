@@ -19,6 +19,17 @@ const ARCHIVOS = ['config.json', 'invitados.csv', 'data/llegadas.json'];
         }
       } catch (e) { console.warn(`  ⚠  Could not load ${f} from GitHub: ${e.message}`); }
     }
+    // mensajes del mural (un archivo por invitado)
+    try {
+      const dir = path.join(__dirname, 'data', 'mensajes');
+      fs.mkdirSync(dir, { recursive: true });
+      const lista = await gh.listar('data/mensajes');
+      for (const f of lista) {
+        const txt = await gh.bajar(f);
+        if (txt !== null) fs.writeFileSync(path.join(__dirname, f), txt);
+      }
+      if (lista.length) console.log(`  ↓ ${lista.length} wishes loaded from GitHub`);
+    } catch (e) { console.warn(`  ⚠  Could not load wishes from GitHub: ${e.message}`); }
   } else {
     console.log('  GitHub auto-save: OFF (set GITHUB_TOKEN and GITHUB_REPO to turn it on)');
   }

@@ -8,8 +8,8 @@
 const TOKEN = process.env.GITHUB_TOKEN || '';
 const REPO = (process.env.GITHUB_REPO || '').trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').replace(/\/$/, '');
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
-const activo = !!(TOKEN && REPO);
 const API = process.env.GITHUB_API || 'https://api.github.com';
+const activo = !!(TOKEN && REPO);
 const shas = {};
 
 async function api(metodo, ruta, cuerpo) {
@@ -32,11 +32,22 @@ async function bajar(ruta) {
   return Buffer.from(d.content || '', 'base64').toString('utf8');
 }
 
-// Sube (crea o reemplaza) un archivo
-async function subir(ruta, texto, mensaje) {
-  if (!activo) return false;
-  for (let intento = 0; intento < 2; intento++) {
-    if (!shas[ruta] || intento > 0) { try { await bajar(ruta); } catch {} }
+// Lista los archivos de una carpeta (o [] si no existe)
+async function listar(carpeta) {
+  if (!activo) return [];
+  const { ok, status, d } = await api('GET', carpeta);
+  if (status === 404) return [];
+  if (!ok) throw new Error(`GitHub ${status}: ${d.message || 'error'}`);
+  return Array.isArray(d) ? d.filter(x => x.type === 'file').map(x => { shas[x.path] = x.sha; return x.path; }) : [];
+}
+
+// Todas las escrituras van en fila (una a la vez) para no chocar en la misma rama
+let fila = Promise.resolve();
+const enFila = fn => (fila = fila.then(fn, fn));
+
+async function _subir(ruta, texto, mensaje) {
+  for (let intento = 0; intento < 3; intento++) {
+    if (intento > 0) { try { await bajar(ruta); } catch {} }
     const { ok, status, d } = await api('PUT', ruta, {
       message: `[skip render] ${mensaje}`,
       content: Buffer.from(texto, 'utf8').toString('base64'),
@@ -48,8 +59,22 @@ async function subir(ruta, texto, mensaje) {
   }
   throw new Error('GitHub: could not save (conflict)');
 }
+async function _borrar(ruta, mensaje) {
+  for (let intento = 0; intento < 3; intento++) {
+    if (!shas[ruta] || intento > 0) { try { if ((await bajar(ruta)) === null) return true; } catch {} }
+    const { ok, status, d } = await api('DELETE', ruta, { message: `[skip render] ${mensaje}`, sha: shas[ruta], branch: BRANCH });
+    if (ok || status === 404) { delete shas[ruta]; return true; }
+    if (status !== 409 && status !== 422) throw new Error(`GitHub ${status}: ${d.message || 'error'}`);
+  }
+  throw new Error('GitHub: could not delete (conflict)');
+}
 
-// Cola: un archivo a la vez, y agrupa cambios seguidos (para las llegadas)
+// Sube (crea o reemplaza) un archivo
+function subir(ruta, texto, mensaje) { return activo ? enFila(() => _subir(ruta, texto, mensaje)) : Promise.resolve(false); }
+// Borra un archivo
+function borrar(ruta, mensaje) { return activo ? enFila(() => _borrar(ruta, mensaje)) : Promise.resolve(false); }
+
+// Agrupa cambios seguidos del mismo archivo (para las llegadas)
 const pendientes = {};
 function subirLuego(ruta, obtenerTexto, mensaje, esperaMs = 8000) {
   if (!activo) return;
@@ -59,4 +84,4 @@ function subirLuego(ruta, obtenerTexto, mensaje, esperaMs = 8000) {
   }, esperaMs);
 }
 
-module.exports = { activo, REPO, BRANCH, bajar, subir, subirLuego };
+module.exports = { activo, REPO, BRANCH, bajar, listar, subir, borrar, subirLuego };

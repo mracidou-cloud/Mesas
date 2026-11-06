@@ -107,6 +107,37 @@ async function aGitHub(ruta, texto, mensaje) {
   catch (e) { console.warn('⚠  ' + e.message); return 'error: ' + e.message; }
 }
 
+// ---------- mural de deseos (un archivo por invitado) ----------
+const DIR_MSG = path.join(ROOT, 'data', 'mensajes');
+fs.mkdirSync(DIR_MSG, { recursive: true });
+let mensajes = {};
+for (const f of fs.readdirSync(DIR_MSG)) {
+  if (!f.endsWith('.json')) continue;
+  try { const m = JSON.parse(fs.readFileSync(path.join(DIR_MSG, f), 'utf8')); mensajes[f.slice(0, -5)] = m; } catch {}
+}
+// ---------- diseños de la pantalla (cada uno es un archivo independiente en public/disenos/) ----------
+const DISENOS = [
+  { id: 'elegant', nombre: 'Elegant', descripcion: 'Purple & gold, tilted QR in a diamond frame', mural: true, editable: true, fondo: '/fondo.jpg' },
+  { id: 'clay', nombre: 'Soft clay', descripcion: 'Pastel, rounded and playful', mural: true, editable: true, fondo: 'linear-gradient(160deg,#f9f2e8,#f3e8da)' },
+  { id: 'ring', nombre: 'Navy ring', descripcion: 'Navy & gold, tables in a ring around the QR, dancing couple', mural: false },
+  { id: 'classic', nombre: 'Classic', descripcion: 'Navy & gold, table grid, side panel with QR, counter and recent arrivals', mural: false },
+];
+const disenoActual = () => DISENOS.find(d => d.id === config.tema) || DISENOS[0];
+// el mural solo funciona si está encendido Y el diseño elegido lo muestra
+const mensajesActivos = () => config.mensajes !== false && disenoActual().mural;
+function mensajePublico(id) {
+  const g = porId.get(id), m = mensajes[id];
+  if (!g || !m || !llegadas[id]) return null;
+  return { id, nombre: g.nombre, mesa: g.mesa, asiento: llegadas[id].asiento, img: m.img, hora: m.hora };
+}
+function borrarMensaje(id) {
+  if (!mensajes[id]) return;
+  delete mensajes[id];
+  try { fs.unlinkSync(path.join(DIR_MSG, id + '.json')); } catch {}
+  gh.borrar(`data/mensajes/${id}.json`, 'Delete wish').catch(e => console.warn('⚠  ' + e.message));
+  io.emit('mensaje-borrado', { id });
+}
+
 function asientoLibre(mesa) {
   const ocupados = new Set(
     invitados.filter(g => g.mesa === mesa && llegadas[g.id]).map(g => llegadas[g.id].asiento)
@@ -135,11 +166,13 @@ const URL_MOVIL = `${URL_BASE}/m`;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-app.use(express.json());
+app.use(express.json({ limit: '600kb' }));
 app.use(express.static(path.join(ROOT, 'public'), { index: false }));
 
 app.get('/', (_, res) => res.redirect('/pantalla'));
-app.get('/pantalla', (_, res) => res.sendFile(path.join(ROOT, 'public', 'pantalla.html')));
+app.get('/pantalla', (_, res) => res.sendFile(path.join(ROOT, 'public', 'disenos', disenoActual().id + '.html')));
+app.get('/pantalla/:diseno', (req, res) => DISENOS.some(d => d.id === req.params.diseno)
+  ? res.sendFile(path.join(ROOT, 'public', 'disenos', req.params.diseno + '.html')) : res.redirect('/pantalla'));
 app.get('/m', (_, res) => res.sendFile(path.join(ROOT, 'public', 'movil.html')));
 app.get('/admin', (_, res) => res.sendFile(path.join(ROOT, 'public', 'admin.html')));
 
@@ -149,7 +182,7 @@ app.get('/api/config', async (_, res) => {
     margin: 1, width: 600, errorCorrectionLevel: 'M', color: { dark: '#141a2b', light: '#fbf7ee' },
   });
   res.json({
-    evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg',
+    evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg', mensajes: mensajesActivos(), tema: disenoActual().id, posiciones: config.posiciones || {},
     mesas: NUM_MESAS, asientos: ASIENTOS, nombresMesas: config.nombresMesas || {},
     total: invitados.length, urlMovil: URL_MOVIL, qr: qrCache,
   });
@@ -171,15 +204,36 @@ app.post('/api/llegada', (req, res) => {
   res.json({ ...publico(g), ya });
 });
 
+// ---- mural de deseos ----
+app.get('/api/mensajes', (_, res) => {
+  if (!mensajesActivos()) return res.json([]);
+  res.json(Object.keys(mensajes).map(mensajePublico).filter(Boolean).sort((a, b) => a.hora - b.hora));
+});
+app.post('/api/mensaje', (req, res) => {
+  if (!mensajesActivos()) return res.status(403).json({ error: 'The wishes wall is turned off.' });
+  const id = req.body && req.body.id, img = String((req.body && req.body.img) || '');
+  if (!porId.has(id)) return res.status(404).json({ error: 'We couldn’t find that name.' });
+  if (!llegadas[id]) return res.status(400).json({ error: 'Please check in first.' });
+  if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 450000) return res.status(400).json({ error: 'Invalid drawing.' });
+  mensajes[id] = { img, hora: Date.now() };
+  const txt = JSON.stringify(mensajes[id]);
+  fs.writeFileSync(path.join(DIR_MSG, id + '.json'), txt);
+  gh.subir(`data/mensajes/${id}.json`, txt, 'New wish').catch(e => console.warn('⚠  ' + e.message));
+  io.emit('mensaje', mensajePublico(id));
+  console.log(`✎ wish from ${porId.get(id).nombre}`);
+  res.json({ ok: true });
+});
+
 // ---- admin ----
 const autorizado = req => req.body && req.body.clave === config.claveAdmin;
 app.post('/api/admin/lista', (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
   res.json({
     invitados: invitados.map(publico),
-    config: { evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg', mesas: Number(config.mesas), asientosPorMesa: ASIENTOS, nombresMesas: config.nombresMesas || {} },
+    config: { evento: config.evento, subtitulo: config.subtitulo, video: config.video || '', decoracion: config.decoracion !== false, videoFondo: config.videoFondo || '', opacidadFondo: config.opacidadFondo ?? 40, imagenFondo: config.imagenFondo || 'fondo.jpg', tema: disenoActual().id, mesas: Number(config.mesas), asientosPorMesa: ASIENTOS, nombresMesas: config.nombresMesas || {} },
     csv: fs.readFileSync(GUESTS_FILE, 'utf8').replace(/^\uFEFF/, ''),
     github: { activo: gh.activo, repo: gh.REPO },
+    disenos: DISENOS, posiciones: config.posiciones || {},
   });
 });
 
@@ -203,6 +257,7 @@ app.post('/api/admin/config', async (req, res) => {
     decoracion: c.decoracion !== false,
     videoFondo: String(c.videoFondo || '').trim().slice(0, 500),
     imagenFondo: String(c.imagenFondo || '').trim().slice(0, 500) || 'fondo.jpg',
+    tema: DISENOS.some(d => d.id === c.tema) ? c.tema : 'elegant',
     opacidadFondo: Math.max(0, Math.min(100, parseInt(c.opacidadFondo, 10) || 0)),
     mesas, asientosPorMesa: asientos, nombresMesas: nombres,
   };
@@ -231,6 +286,30 @@ app.post('/api/admin/invitados', async (req, res) => {
   res.json({ ok: true, total: lista.length, avisos, github });
 });
 
+// Guardar dónde va cada mesa y el QR en un diseño (editor de distribución)
+app.post('/api/admin/posiciones', async (req, res) => {
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
+  const d = DISENOS.find(x => x.id === req.body.diseno && x.editable);
+  if (!d) return res.status(400).json({ error: 'This design can’t be edited.' });
+  const lim = (v, a, b) => Math.round(Math.max(a, Math.min(b, Number(v))));
+  config.posiciones = config.posiciones || {};
+  const p = req.body.posiciones;
+  if (!p) delete config.posiciones[d.id];              // volver a la distribución automática
+  else {
+    const mesas = {};
+    for (const [k, v] of Object.entries(p.mesas || {})) {
+      const n = parseInt(k, 10);
+      if (n >= 1 && n <= 60 && v && isFinite(v.x) && isFinite(v.y)) mesas[n] = { x: lim(v.x, 40, 1880), y: lim(v.y, 40, 1040) };
+    }
+    const qr = p.qr && isFinite(p.qr.x) && isFinite(p.qr.y) ? { x: lim(p.qr.x, 150, 1770), y: lim(p.qr.y, 150, 930) } : undefined;
+    config.posiciones[d.id] = { mesas, ...(qr ? { qr } : {}) };
+  }
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  io.emit('reinicio');
+  const github = await aGitHub('config.json', JSON.stringify(config, null, 2), 'Update layout of ' + d.nombre);
+  res.json({ ok: true, github });
+});
+
 // Descargar config.json (para subirlo a GitHub y que no se pierda)
 app.post('/api/admin/config.json', (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
@@ -238,12 +317,29 @@ app.post('/api/admin/config.json', (req, res) => {
 });
 app.post('/api/admin/quitar', (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
-  delete llegadas[req.body.id]; guardar(); io.emit('reinicio');
+  delete llegadas[req.body.id]; borrarMensaje(req.body.id); guardar(); io.emit('reinicio');
+  res.json({ ok: true });
+});
+app.post('/api/admin/mensajes', (req, res) => {
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
+  res.json({ activo: config.mensajes !== false, disenoMural: disenoActual().mural, disenoNombre: disenoActual().nombre, lista: Object.keys(mensajes).map(mensajePublico).filter(Boolean).sort((a, b) => b.hora - a.hora) });
+});
+app.post('/api/admin/mensajes-activar', async (req, res) => {
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
+  config.mensajes = !!req.body.activo;
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  io.emit('reinicio');
+  const github = await aGitHub('config.json', JSON.stringify(config, null, 2), 'Turn wishes wall ' + (config.mensajes ? 'on' : 'off'));
+  res.json({ ok: true, activo: config.mensajes !== false, github });
+});
+app.post('/api/admin/mensaje-borrar', (req, res) => {
+  if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
+  if (req.body.todos) Object.keys(mensajes).forEach(borrarMensaje); else borrarMensaje(req.body.id);
   res.json({ ok: true });
 });
 app.post('/api/admin/reiniciar', (req, res) => {
   if (!autorizado(req)) return res.status(401).json({ error: 'Wrong password' });
-  llegadas = {}; guardar(); io.emit('reinicio');
+  llegadas = {}; Object.keys(mensajes).forEach(borrarMensaje); guardar(); io.emit('reinicio');
   res.json({ ok: true });
 });
 

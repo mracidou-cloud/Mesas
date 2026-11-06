@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seating chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fondo:#1b0d30; --oro:#e0b04a; --oro2:#f7dc8c; --marfil:#fbf3e2;
+    --tenue:rgba(240,196,98,.5); --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--fondo)}
+  body{color:var(--marfil);font-family:var(--sans)}
+
+  /* Escenario fijo de 1920x1080 que se escala para llenar cualquier pantalla */
+  #escena{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+  #bg{position:absolute;inset:0;background:var(--fondo) center/cover no-repeat}
+  #fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2s;pointer-events:none}
+  svg#mapa{position:absolute;inset:0;width:1920px;height:1080px;overflow:visible}
+
+  /* Título — arriba a la izquierda */
+  .titulo{position:absolute;left:70px;top:46px;width:560px}
+  .adorno{color:var(--oro);letter-spacing:.55em;font-size:13px;font-weight:600;text-transform:uppercase;opacity:0;animation:aparece 1.2s ease .2s forwards}
+  h1{position:relative;display:inline-block;font-family:var(--serif);font-weight:500;font-size:64px;line-height:1.02;margin:10px 0 8px;
+     text-shadow:0 2px 18px rgba(10,4,24,.7)}
+  h1{opacity:0}
+  @keyframes letra{to{opacity:1;transform:none;filter:blur(0)}}
+  h1::after{content:attr(data-texto);position:absolute;inset:0;color:transparent;pointer-events:none;
+    background:linear-gradient(105deg,transparent 42%,rgba(255,232,170,.95) 50%,transparent 58%);background-size:300% 100%;
+    -webkit-background-clip:text;background-clip:text;background-position:150% 0}
+  @keyframes destello{0%{background-position:150% 0}35%,100%{background-position:-50% 0}}
+  .sub{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--oro2);opacity:0;animation:aparece 1.4s ease forwards}
+  .linea-oro{width:0;height:1px;margin-top:14px;background:linear-gradient(90deg,var(--oro),transparent);animation:crece 1.6s ease forwards}
+  @keyframes aparece{to{opacity:.95}}
+  @keyframes crece{to{width:360px}}
+
+  /* QR girado dentro del rombo */
+  #qr-rombo{position:absolute;left:960px;top:540px;width:330px;height:330px;margin:-165px 0 0 -165px;transform:rotate(45deg);
+    background:var(--marfil);border-radius:22px;padding:20px;
+    box-shadow:0 0 0 2px var(--oro),0 0 0 9px rgba(224,176,74,.18),0 0 60px rgba(247,220,140,.25),0 20px 50px rgba(0,0,0,.5);
+    animation:latido 1s ease-out infinite}
+  #qr-rombo img{display:block;width:100%;height:100%;image-rendering:pixelated}
+  @keyframes latido{0%{box-shadow:0 0 0 2px var(--oro2),0 0 0 12px rgba(224,176,74,.25),0 0 90px rgba(247,220,140,.45),0 20px 50px rgba(0,0,0,.5)}}
+
+
+  /* Pulso de luz + bokeh alrededor del QR (late cada 1 segundo) */
+  #halo{position:absolute;left:960px;top:540px;width:0;height:0;pointer-events:none}
+  .resplandor{position:absolute;left:-380px;top:-380px;width:760px;height:760px;border-radius:50%;mix-blend-mode:screen;
+    background:radial-gradient(circle,rgba(255,226,150,.55) 0%,rgba(247,200,110,.22) 32%,rgba(247,200,110,0) 62%);
+    animation:resplandor 1s ease-out infinite}
+  @keyframes resplandor{0%{opacity:1;transform:scale(.9)}100%{opacity:.25;transform:scale(1.12)}}
+  .pulso{position:absolute;left:-165px;top:-165px;width:330px;height:330px;border-radius:26px;border:3px solid rgba(255,236,180,.95);
+    box-shadow:0 0 28px 6px rgba(247,220,140,.75),inset 0 0 26px rgba(247,220,140,.55);animation:pulso 1s cubic-bezier(.2,.6,.3,1) infinite}
+  @keyframes pulso{0%{transform:rotate(45deg) scale(1);opacity:.95}100%{transform:rotate(45deg) scale(1.75);opacity:0}}
+  .bokeh{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:deriva var(--d) ease-in-out infinite alternate}
+  .bokeh i{display:block;width:100%;height:100%;border-radius:50%;
+    background:radial-gradient(circle at 45% 40%,rgba(255,246,210,.95),rgba(250,210,120,.55) 45%,rgba(247,200,110,0) 72%);
+    filter:blur(var(--b));animation:destella 1s ease-in-out infinite;animation-delay:var(--r)}
+  @keyframes destella{0%{opacity:.18;transform:scale(.7)}22%{opacity:1;transform:scale(1.12)}100%{opacity:.18;transform:scale(.7)}}
+  @keyframes deriva{to{transform:translate(var(--x),var(--y))}}
+
+  /* Instrucciones — abajo a la derecha */
+  .instrucciones{position:absolute;left:70px;top:238px;width:350px;text-align:left}
+  .instrucciones .t{font-family:var(--serif);font-size:38px;line-height:1.05;font-weight:500;text-shadow:0 2px 14px rgba(10,4,24,.7)}
+  .instrucciones .t em{color:var(--oro2)}
+  .instrucciones .p{font-size:17px;line-height:1.55;margin-top:12px;opacity:.85}
+  .instrucciones .u{font-size:13px;color:var(--oro2);opacity:.8;margin-top:8px;letter-spacing:.03em}
+  .instrucciones .linea{width:240px;height:1px;margin:14px 0 0;background:linear-gradient(90deg,var(--oro),transparent)}
+
+  /* Mesas */
+  .mesa-base{fill:url(#gMesa);stroke:var(--oro);stroke-width:1.6}
+  .mesa-anillo{fill:none;stroke:var(--tenue);stroke-width:.8;stroke-dasharray:2 3}
+  .mesa-num{font-family:var(--serif);font-weight:500;fill:var(--marfil);text-anchor:middle;dominant-baseline:central}
+  .mesa-et{font-family:var(--sans);letter-spacing:3px;fill:var(--oro2);text-anchor:middle;font-weight:600}
+  .mesa-nom{font-family:var(--serif);font-style:italic;fill:var(--oro2);text-anchor:middle}
+  .mesa-cont{font-family:var(--sans);fill:var(--marfil);opacity:.6;text-anchor:middle;letter-spacing:1px}
+  .mesa.activa .mesa-base{stroke:var(--oro2);stroke-width:3;filter:url(#brillo)}
+  .mesa.activa .mesa-num{fill:var(--oro2)}
+  .silla circle{fill:rgba(22,9,40,.75);stroke:var(--tenue);stroke-width:1.2;stroke-dasharray:3 2.2;transition:all .4s}
+  .silla text{font-family:var(--sans);font-weight:600;fill:#2a1405;text-anchor:middle;dominant-baseline:central;opacity:0}
+  .silla.ocupada circle{fill:url(#gOro);stroke:var(--oro2);stroke-dasharray:none;stroke-width:1}
+  .silla.ocupada text{opacity:1}
+  .silla{transform-box:fill-box;transform-origin:center}
+  .silla.nueva{animation:pop .7s cubic-bezier(.3,1.8,.5,1)}
+  @keyframes pop{0%{transform:scale(.2)}60%{transform:scale(1.45)}100%{transform:scale(1)}}
+  .onda{fill:none;stroke:var(--oro2);stroke-width:2}
+
+
+  /* Mural de deseos: dos columnas ordenadas (izquierda y derecha), tarjetas 3:1 */
+  .columna{position:absolute;right:10px;top:0;bottom:0;width:430px;overflow:hidden;pointer-events:none;
+    -webkit-mask-image:linear-gradient(transparent,#000 90px,#000 calc(100% - 90px),transparent);mask-image:linear-gradient(transparent,#000 90px,#000 calc(100% - 90px),transparent)}
+  .slot{position:absolute;right:14px;top:0;width:270px;height:90px;transform-origin:100% 50%;will-change:transform}
+  .slot .nota{width:100%;height:100%}
+  .nota{width:270px;height:90px;flex:none;display:flex;flex-direction:column;padding:7px 12px 6px;border-radius:12px;
+    background:rgba(27,12,48,.86);border:1px solid rgba(240,196,98,.55);box-shadow:0 6px 16px rgba(8,3,20,.5)}
+  .nota img{display:block;width:100%;flex:1;min-height:0;object-fit:contain}
+  .nota span{display:block;font-size:10px;letter-spacing:.08em;color:var(--oro2);opacity:.85;text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nota span{text-align:right}
+  .nota.nueva{animation:notaPop .8s cubic-bezier(.2,1.25,.3,1)}
+  @keyframes notaPop{from{transform:scale(.3);opacity:0}}
+  .v-deseo{display:block;margin:2vh auto 0;max-width:62vw;max-height:46vh;filter:drop-shadow(0 0 18px rgba(247,220,140,.35))}
+
+  /* Bienvenida */
+  /* Luz de seguimiento (spotlight) que viaja hasta la mesa del invitado */
+  @property --fx{syntax:'<length>';inherits:false;initial-value:960px}
+  @property --fy{syntax:'<length>';inherits:false;initial-value:540px}
+  @property --fr{syntax:'<number>';inherits:false;initial-value:1}
+  #foco{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+    background:radial-gradient(circle at var(--fx) var(--fy),rgba(255,228,160,.24) 0,rgba(255,228,160,.09) calc(var(--fr)*115px),rgba(12,4,26,0) calc(var(--fr)*190px),rgba(12,4,26,.55) calc(var(--fr)*440px))}
+  .mesa{transform-box:fill-box;transform-origin:center}
+  .haz{fill:none;stroke-linecap:round;pointer-events:none}
+  .costura{position:absolute;left:12%;right:12%;bottom:0;height:2px;border-radius:2px;background:var(--oro2);box-shadow:0 0 6px var(--oro2),0 0 12px rgba(247,220,140,.6);transform:scaleX(0);pointer-events:none}
+  .nota{position:relative}
+  #velo{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at center,rgba(16,6,30,.9),rgba(16,6,30,.6));opacity:0;pointer-events:none}
+  #volador{position:fixed;left:50%;top:50%;width:0;height:0;opacity:0;pointer-events:none;z-index:10}
+  #volador .in{position:absolute;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+  .v-hola{font-size:clamp(12px,1.1vw,22px);letter-spacing:.55em;text-transform:uppercase;color:var(--oro2);font-weight:500}
+  .v-nombre{font-family:var(--serif);font-weight:500;font-size:clamp(48px,6.2vw,128px);line-height:1.1;color:var(--marfil);text-shadow:0 0 40px rgba(247,220,140,.4);margin:1.4vh 0}
+  .v-mesa{font-family:var(--serif);font-style:italic;font-size:clamp(22px,2.4vw,48px);color:var(--oro2)}
+  .v-linea{width:12vw;height:1px;margin:2vh auto 0;background:linear-gradient(90deg,transparent,var(--oro),transparent)}
+
+  #ayuda{position:fixed;left:16px;bottom:10px;font-size:12px;opacity:.45;transition:opacity 1s;z-index:20}
+  #conexion{position:fixed;right:12px;top:10px;font-size:12px;padding:4px 10px;border-radius:20px;background:#a33;display:none;z-index:20}
+</style>
+</head>
+<body>
+<div id="escena">
+  <div id="bg"></div>
+  <video id="fondo" muted loop playsinline autoplay></video>
+  <svg id="mapa"></svg>
+  <div class="columna" id="mural"></div>
+
+  <div class="titulo">
+    <div class="adorno">✦ Seating chart</div>
+    <h1 id="evento">&nbsp;</h1>
+    <div class="sub" id="subtitulo"></div>
+    <div class="linea-oro"></div>
+  </div>
+
+  <div id="halo"><div class="resplandor"></div><div class="pulso"></div></div>
+  <div id="qr-rombo"><img id="qr" alt="QR code"></div>
+
+  <div class="instrucciones">
+    <div class="t">Scan to<br><em>find your table</em></div>
+    <div class="p">Open your phone camera, point it at the code in the center and look up your name</div>
+    <div class="linea"></div>
+    <div class="u" id="url"></div>
+  </div>
+  <div id="foco"></div>
+  <div id="velo"></div>
+</div>
+
+<div id="volador"><div class="in"></div></div>
+<div id="ayuda">F = full screen · D = simulate an arrival (test)</div>
+<div id="conexion">Offline… reconnecting</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/plano.js"></script>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const DISENO = 'elegant';   // id de este diseño (para sus posiciones guardadas)
+let cfg, P, ocupados = new Map(), cola = [], animando = false;
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const ruta = v => /^https?:|^\//.test(v) ? v : '/' + v;
+
+// ---- escala del escenario 1920x1080 a la pantalla ----
+function escalar() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  const e = $('escena');
+  e.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px,${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+}
+addEventListener('resize', escalar); escalar();
+
+// Curvas de movimiento (tomadas de las recetas de video-shotcraft)
+const EXPO = 'cubic-bezier(.16,1,.3,1)';          // salida suave, para revelar
+const SOBRE = 'cubic-bezier(.2,1.25,.3,1)';       // subida con rebote (spotlight-hero-card)
+const ACELERA = 'cubic-bezier(.55,0,.25,1)';      // vuelo que acelera y frena al llegar
+const ENTRA_SALE = 'cubic-bezier(.45,0,.2,1)';
+
+function animarTitulo(texto) {
+  const h = $('evento'); h.dataset.texto = texto; h.textContent = texto;
+  const tam = texto.length > 26 ? 44 : texto.length > 18 ? 54 : 64;
+  h.style.fontSize = tam + 'px';
+  // Todo el nombre aparece junto (no letra por letra): desenfoque + el espacio entre letras se cierra
+  h.animate([
+    { opacity: 0, filter: 'blur(14px)', letterSpacing: '.22em', transform: 'translateY(14px)' },
+    { opacity: 1, filter: 'blur(0)', letterSpacing: '0em', transform: 'none' }
+  ], { duration: 1900, delay: 300, easing: ENTRA_SALE, fill: 'both' });
+  $('subtitulo').style.animationDelay = '1.7s';
+  // Un solo destello dorado al terminar, y después uno discreto cada 40 s
+  const brillo = () => { try { h.animate([{ backgroundPosition: '150% 0' }, { backgroundPosition: '-50% 0' }], { duration: 1600, easing: 'ease-in-out', pseudoElement: '::after' }); } catch {} };
+  setTimeout(brillo, 2500); setInterval(brillo, 40000);
+}
+function ponerFondos() {
+  $('bg').style.backgroundImage = `url("${ruta(cfg.imagenFondo || 'fondo.jpg')}")`;
+  const v = (cfg.videoFondo || '').trim(), vid = $('fondo');
+  if (!v) return;
+  vid.src = ruta(v);
+  vid.oncanplay = () => { vid.style.opacity = (cfg.opacidadFondo ?? 40) / 100; vid.play().catch(() => {}); };
+}
+
+async function iniciar() {
+  cfg = await (await fetch('/api/config')).json();
+  animarTitulo(cfg.evento); $('subtitulo').textContent = cfg.subtitulo || '';
+  document.title = cfg.evento + ' · Seating';
+  ponerFondos();
+  $('qr').src = cfg.qr; $('url').textContent = cfg.urlMovil.replace(/^https?:\/\//, '');
+  dibujar(); repartirMesas();
+  await sincronizar();
+}
+
+// el QR (y su halo de luz) van donde se haya colocado en el editor
+function ponerQR() {
+  for (const id of ['qr-rombo', 'halo']) { const e = $(id); e.style.left = P.qr.x + 'px'; e.style.top = P.qr.y + 'px'; }
+}
+function dibujar() {
+  P = calcularEscena(cfg.mesas, cfg.asientos, (cfg.posiciones || {})[DISENO]);
+  ponerQR();
+  const svg = $('mapa');
+  svg.setAttribute('viewBox', `0 0 ${P.W} ${P.H}`);
+  svg.innerHTML = `<defs>
+    <radialGradient id="gMesa" cx="40%" cy="35%"><stop offset="0" stop-color="#3d2266"/><stop offset="1" stop-color="#1a0b30"/></radialGradient>
+    <radialGradient id="gOro" cx="35%" cy="30%"><stop offset="0" stop-color="#fff0c2"/><stop offset=".55" stop-color="#e8b44e"/><stop offset="1" stop-color="#b07d22"/></radialGradient>
+    <filter id="brillo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="sombra" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0a0418" flood-opacity=".6"/></filter>
+  </defs>`;
+  const s = P.escala, fs = Math.max(6, P.rSilla * .68);
+  for (const m of P.mesas) {
+    const g = el('g', { class: 'mesa', id: `mesa-${m.numero}`, filter: 'url(#sombra)' }, svg);
+    el('circle', { class: 'mesa-anillo', cx: m.cx, cy: m.cy, r: P.R + 8 * s }, g);
+    el('circle', { class: 'mesa-base', cx: m.cx, cy: m.cy, r: P.R }, g);
+    const nom = cfg.nombresMesas[m.numero];
+    el('text', { class: 'mesa-et', x: m.cx, y: m.cy - 20 * s, 'font-size': 7.5 * s }, g).textContent = 'TABLE';
+    el('text', { class: 'mesa-num', x: m.cx, y: m.cy + (nom ? -1 : 2) * s, 'font-size': 34 * s }, g).textContent = m.numero;
+    if (nom) el('text', { class: 'mesa-nom', x: m.cx, y: m.cy + 22 * s, 'font-size': 10 * s }, g).textContent = nom.length > 14 ? nom.slice(0, 13) + '…' : nom;
+    el('text', { class: 'mesa-cont', x: m.cx, y: m.cy + (nom ? 34 : 28) * s, id: `cont-${m.numero}`, 'font-size': 7 * s }, g).textContent = `0/${cfg.asientos}`;
+    m.sillas.forEach((p, i) => {
+      const sg = el('g', { class: 'silla', id: `s-${m.numero}-${i}` }, svg);
+      el('circle', { cx: p.x, cy: p.y, r: P.rSilla }, sg);
+      el('text', { x: p.x, y: p.y + .5, 'font-size': fs }, sg);
+    });
+  }
+}
+
+let mesasRepartidas = false;
+async function repartirMesas() {
+  if (mesasRepartidas) return; mesasRepartidas = true;
+  let t = 700, paso = 230;
+  for (const m of P.mesas) {
+    const g = $(`mesa-${m.numero}`);
+    g.animate([{ opacity: 0, transform: 'translateY(-34px) scale(.8)' }, { opacity: 1, transform: 'none' }],
+      { duration: 640, delay: t, easing: SOBRE, fill: 'backwards' });
+    m.sillas.forEach((_, j) => {
+      const s = $(`s-${m.numero}-${j}`);
+      s.animate([{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'none' }],
+        { duration: 380, delay: t + 260 + j * 26, easing: SOBRE, fill: 'backwards' });
+    });
+    t += paso; paso = Math.max(70, paso * .8);   // cada mesa llega un poco antes que la anterior
+  }
+}
+
+async function sincronizar() {
+  const lista = await (await fetch('/api/estado')).json();
+  for (const g of lista) if (!ocupados.has(g.id)) ocupar(g, false);
+  if (cfg.mensajes) {
+    const ms = await (await fetch('/api/mensajes')).json();
+    for (const m of ms) if (!notas.has(m.id) || notas.get(m.id).m.hora !== m.hora) pegarNota(m, false);
+  }
+}
+
+// ---------- mural de deseos ----------
+// Una sola columna a la derecha que sube sin parar desde abajo.
+// La tarjeta que pasa por el centro se agranda para poder leerla.
+const notas = new Map();                 // id -> { m, el, s, vis }
+const PASO = 122, VEL = 30, ZOOM = .42;  // separación (px), velocidad (px/s), cuánto crece la del centro
+let pausaMural = false, ultimoT = 0;
+const altoMural = () => $('mural').clientHeight;
+const largoMural = () => Math.max(notas.size * PASO, altoMural() + PASO * 2);
+function colocar(n, H) {
+  const y = H + PASO / 2 - n.vis;                         // centro vertical de la tarjeta
+  const d = Math.abs(y - H / 2), f0 = Math.max(0, 1 - d / (PASO * 1.7)), f = f0 * f0 * (3 - 2 * f0);
+  n.el.style.transform = `translateY(${(y - 45).toFixed(1)}px) scale(${(1 + ZOOM * f).toFixed(3)})`;
+  n.el.style.zIndex = Math.round(f * 100);
+  n.el.style.visibility = (y < -PASO || y > H + PASO) ? 'hidden' : '';
+  n.el.classList.toggle('centro', f > .85);
+}
+function pegarNota(m, nueva, enCentro) {
+  quitarNota(m.id);
+  const el = document.createElement('div'); el.className = 'slot';
+  el.innerHTML = `<div class="nota${nueva ? ' nueva' : ''}" id="nota-${m.id}"><img src="${m.img}" alt=""><span>${esc(m.nombre)} · Table ${m.mesa}</span></div>`;
+  $('mural').appendChild(el);
+  const H = altoMural(); let s;
+  if (enCentro) {
+    s = H / 2 + PASO / 2;                                  // justo en el centro
+    for (const o of notas.values()) if (o.s >= s - PASO / 2) o.s += PASO;   // los de arriba se corren para hacerle lugar
+  } else {
+    const todas = [...notas.values()];
+    s = todas.length ? Math.min(...todas.map(o => o.s)) - PASO : H + PASO / 2 - 40;   // detrás del último
+  }
+  const n = { m, el, s, vis: s }; notas.set(m.id, n);
+  const L = largoMural(); for (const o of notas.values()) { o.s = ((o.s % L) + L) % L; if (o === n) o.vis = o.s; }
+  colocar(n, H);
+  return el.firstElementChild;
+}
+function quitarNota(id) { const n = notas.get(id); if (n) { n.el.remove(); notas.delete(id); } }
+function cuadroMural(t) {
+  const dt = Math.min(.05, (t - ultimoT) / 1000 || 0); ultimoT = t;
+  const H = altoMural(), L = largoMural();
+  for (const n of notas.values()) {
+    if (!pausaMural) n.s += VEL * dt;
+    if (n.s >= L) { n.s -= L; n.vis = n.s; }
+    n.vis += (n.s - n.vis) * Math.min(1, dt * 5);
+    colocar(n, H);
+  }
+  requestAnimationFrame(cuadroMural);
+}
+requestAnimationFrame(cuadroMural);
+
+async function animarMensaje(m) {
+  const vol = $('volador'), inner = vol.querySelector('.in'), velo = $('velo');
+  inner.innerHTML = `<div class="v-hola">A wish from</div><div class="v-mesa" style="font-size:clamp(28px,3vw,58px);font-style:normal;color:var(--marfil)">${esc(m.nombre)}</div><img class="v-deseo" src="${m.img}" alt="">`;
+  await new Promise(ok => { const im = inner.querySelector('img'); im.complete ? ok() : (im.onload = im.onerror = ok); });
+  vol.getAnimations().forEach(a => a.cancel());
+  vol.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'forwards' });
+  velo.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, easing: EXPO, fill: 'forwards' });
+  const [hola, quien, dibujo] = inner.children;
+  await revelar([hola, dibujo, quien], 1);
+  await sleep(cola.length >= 2 ? 1800 : 3200);
+  pausaMural = true;
+  const n = pegarNota(m, false, true); n.style.visibility = 'hidden';
+  await sleep(700);   // deja que las demás tarjetas le hagan lugar
+  const r = n.getBoundingClientRect();
+  const dx = r.left + r.width / 2 - innerWidth / 2, dy = r.top + r.height / 2 - innerHeight / 2;
+  velo.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1100, fill: 'forwards', delay: 200 });
+  await vol.animate(arco(dx, dy, .2, 160), { duration: 1250, easing: ACELERA, fill: 'forwards' }).finished;
+  n.style.visibility = '';
+  await encajar(n);
+  await sleep(1800); pausaMural = false;
+}
+// "row-embed": la tarjeta baja, se aplana y encaja; una costura de luz se abre desde el centro y se apaga
+async function encajar(n) {
+  const c = document.createElement('div'); c.className = 'costura'; n.appendChild(c);
+  await n.animate([
+    { opacity: 0, transform: 'perspective(700px) translateY(-46px) rotateX(18deg) scale(1.06)' },
+    { opacity: 1, transform: 'perspective(700px) translateY(0) rotateX(0deg) scale(.995)', offset: .78 },
+    { opacity: 1, transform: 'none' }], { duration: 560, easing: 'cubic-bezier(.2,.9,.3,1)' }).finished;
+  await c.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 170, easing: 'cubic-bezier(.33,1,.68,1)', fill: 'forwards' }).finished;
+  await c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: 'forwards' }).finished;
+  c.remove();
+}
+
+function ocupar(g, nueva) {
+  ocupados.set(g.id, g);
+  const s = $(`s-${g.mesa}-${g.asiento}`);
+  if (s) {
+    s.classList.add('ocupada'); s.querySelector('text').textContent = iniciales(g.nombre);
+    if (nueva) { s.classList.remove('nueva'); void s.getBBox(); s.classList.add('nueva'); onda(s); }
+  }
+  const n = [...ocupados.values()].filter(x => x.mesa === g.mesa).length;
+  const c = $(`cont-${g.mesa}`); if (c) c.textContent = `${n}/${cfg.asientos}`;
+}
+function onda(s) {
+  const c = s.querySelector('circle');
+  const o = el('circle', { class: 'onda', cx: c.getAttribute('cx'), cy: c.getAttribute('cy'), r: P.rSilla }, $('mapa'));
+  o.animate([{ r: P.rSilla, opacity: 1 }, { r: P.rSilla * 4, opacity: 0 }], { duration: 1100, easing: 'ease-out' }).onfinish = () => o.remove();
+}
+
+function encolar(g) { if (ocupados.has(g.id) || cola.some(x => !x.tipo && x.id === g.id)) return; cola.push(g); if (!animando) procesar(); }
+function encolarMensaje(m) { if (!cfg.mensajes || !m) return; cola.push({ ...m, tipo: 'mensaje' }); if (!animando) procesar(); }
+async function procesar() {
+  animando = true;
+  while (cola.length) {
+    const x = cola.shift();
+    try { await (x.tipo === 'mensaje' ? animarMensaje(x) : animar(x)); }
+    catch (e) { console.error(e); pausaMural = false; $('velo').getAnimations().forEach(a => a.cancel()); $('volador').getAnimations().forEach(a => a.cancel()); if (x.tipo === 'mensaje') pegarNota(x, true); else ocupar(x, true); }
+  }
+  animando = false;
+}
+
+// Trayectoria en arco (sube y luego baja a su destino), con el tamaño que se reduce al final
+function arco(dx, dy, escalaFinal, alto = 240) {
+  const cx = dx * .2, cy = Math.min(dy, 0) * .4 - alto, kf = [];
+  for (let i = 0; i <= 16; i++) {
+    const t = i / 16, u = 1 - t;
+    const x = 2 * u * t * cx + t * t * dx, y = 2 * u * t * cy + t * t * dy;
+    const sc = 1 - (1 - escalaFinal) * Math.pow(t, 1.5);
+    kf.push({ transform: `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${sc.toFixed(3)})`, opacity: t > .9 ? Math.max(0, 1 - (t - .9) * 10) : 1 });
+  }
+  return kf;
+}
+// Revelado sincronizado del bloque central (hola / nombre / mesa / línea)
+function revelar(partes, k) {
+  const [hola, nombre, sub, linea] = partes, a = [];
+  hola && a.push(hola.animate([{ opacity: 0, letterSpacing: '1.1em' }, { opacity: 1, letterSpacing: '.55em' }], { duration: 1000 * k, easing: EXPO, fill: 'backwards' }));
+  nombre && a.push(nombre.animate([
+    { opacity: 0, filter: 'blur(16px)', transform: 'translateY(38px) scale(.96)', letterSpacing: '.1em' },
+    { opacity: 1, filter: 'blur(0)', transform: 'none', letterSpacing: '0em' }], { duration: 1150 * k, delay: 120 * k, easing: EXPO, fill: 'backwards' }));
+  sub && a.push(sub.animate([{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { duration: 750 * k, delay: 420 * k, easing: EXPO, fill: 'backwards' }));
+  linea && a.push(linea.animate([{ transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 }], { duration: 850 * k, delay: 560 * k, easing: EXPO, fill: 'backwards' }));
+  return Promise.all(a.map(x => x.finished));
+}
+// La luz parte del QR, pasa por un punto intermedio y se fija en la mesa (con un pequeño pulso)
+function focoA(x, y, k) {
+  const f = $('foco');
+  f.getAnimations().forEach(a => a.cancel());
+  const mx = P.qr.x + (x - P.qr.x) * .45 + (y < P.qr.y ? 60 : -60), my = P.qr.y + (y - P.qr.y) * .35;
+  f.animate([
+    { opacity: 0, '--fx': P.qr.x + 'px', '--fy': P.qr.y + 'px', '--fr': 1.5 },
+    { opacity: 1, '--fx': mx + 'px', '--fy': my + 'px', '--fr': 1.25, offset: .45 },
+    { opacity: 1, '--fx': x + 'px', '--fy': y + 'px', '--fr': .92, offset: .85 },
+    { opacity: 1, '--fx': x + 'px', '--fy': y + 'px', '--fr': 1 }
+  ], { duration: 1500 * k, easing: ENTRA_SALE, fill: 'forwards' });
+}
+function focoFuera(k) {
+  const f = $('foco'), cs = getComputedStyle(f);
+  f.animate([{ opacity: 1, '--fx': cs.getPropertyValue('--fx'), '--fy': cs.getPropertyValue('--fy'), '--fr': 1 },
+             { opacity: 0, '--fx': cs.getPropertyValue('--fx'), '--fy': cs.getPropertyValue('--fy'), '--fr': 1.6 }],
+    { duration: 900 * k, easing: EXPO, fill: 'forwards' });
+}
+// La mesa se eleva con rebote, un haz de luz le da dos vueltas (rápida y luego lenta) y se vuelve a asentar
+async function levantarMesa(numero, k) {
+  const g = $(`mesa-${numero}`), m = P.mesas[numero - 1]; if (!g || !m) return;
+  g.classList.add('activa');
+  const dur = 2300 * k;
+  const sube = g.animate([
+    { transform: 'scale(1)', easing: SOBRE },
+    { transform: 'scale(1.15)', offset: .16, easing: 'ease-in-out' },
+    { transform: 'scale(1.12)', offset: .45, easing: 'ease-in-out' },
+    { transform: 'scale(1.15)', offset: .72, easing: 'cubic-bezier(.5,0,.6,1)' },
+    { transform: 'scale(.985)', offset: .92, easing: 'ease-out' },
+    { transform: 'scale(1)' }], { duration: dur });
+  const rr = (P.R + 8 * P.escala) * 1.14 + 3;
+  const vuelta = (ancho, op, ms, retraso) => {
+    const glow = el('circle', { class: 'haz', cx: m.cx, cy: m.cy, r: rr, pathLength: 1, 'stroke-dasharray': '0.16 1', stroke: '#f7dc8c', 'stroke-width': ancho * 2.6, opacity: 0, filter: 'url(#brillo)' }, $('mapa'));
+    const core = el('circle', { class: 'haz', cx: m.cx, cy: m.cy, r: rr, pathLength: 1, 'stroke-dasharray': '0.16 1', stroke: '#fff6dc', 'stroke-width': ancho, opacity: 0 }, $('mapa'));
+    return Promise.all([[glow, op * .45], [core, op]].map(([c, o]) => c.animate([
+      { strokeDashoffset: 0, opacity: 0 }, { opacity: o, offset: .12 }, { opacity: o, offset: .82 }, { strokeDashoffset: -1, opacity: 0 }],
+      { duration: ms, delay: retraso, easing: 'cubic-bezier(.4,0,.3,1)' }).finished.then(() => c.remove())));
+  };
+  await Promise.all([sube.finished, vuelta(3.2, 1, 650 * k, 280 * k), vuelta(2, .6, 900 * k, 960 * k)]);
+  g.classList.remove('activa');
+}
+
+async function animar(g) {
+  const prisa = cola.length >= 2, k = prisa ? .6 : 1;
+  const vol = $('volador'), inner = vol.querySelector('.in'), velo = $('velo');
+  const nomMesa = cfg.nombresMesas[g.mesa] ? ` · ${esc(cfg.nombresMesas[g.mesa])}` : '';
+  inner.innerHTML = `<div class="v-hola">Welcome</div><div class="v-nombre">${esc(g.nombre)}</div><div class="v-mesa">Table ${g.mesa}${nomMesa}</div><div class="v-linea"></div>`;
+  vol.getAnimations().forEach(a => a.cancel());
+  vol.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'forwards' });
+  const mesa = P.mesas[g.mesa - 1];
+  // 1) Entrada: el nombre completo aparece de golpe (sincronizado), sobre un velo oscuro
+  velo.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600 * k, easing: EXPO, fill: 'forwards' });
+  await revelar([...inner.children], k);
+  // 2) Pausa para leer (≥1 s); mientras tanto la luz busca la mesa
+  if (mesa) focoA(mesa.cx, mesa.cy, k);
+  await sleep(prisa ? 750 : 1400);
+  // 3) Vuelo en arco hacia su asiento: arranca suave y acelera
+  const destino = $(`s-${g.mesa}-${g.asiento}`) || $(`mesa-${g.mesa}`);
+  const r = destino.getBoundingClientRect();
+  const dx = r.left + r.width / 2 - innerWidth / 2, dy = r.top + r.height / 2 - innerHeight / 2;
+  velo.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000 * k, delay: 150 * k, easing: ENTRA_SALE, fill: 'forwards' });
+  await vol.animate(arco(dx, dy, .06), { duration: 1300 * k, easing: ACELERA, fill: 'forwards' }).finished;
+  // 4) Aterriza: el asiento se enciende y la mesa se eleva, recibe el haz y se asienta
+  ocupar(g, true);
+  await levantarMesa(g.mesa, k);
+  focoFuera(k);
+  await sleep(250 * k);
+}
+
+
+// bokeh: luces suaves alrededor del QR que destellan con cada pulso
+function crearBokeh() {
+  const halo = $('halo');
+  for (let i = 0; i < 30; i++) {
+    const ang = Math.random() * Math.PI * 2, rad = 190 + Math.random() * 230;
+    const tam = 8 + Math.random() * Math.random() * 46;
+    const b = document.createElement('div'); b.className = 'bokeh';
+    b.style.cssText = `left:${Math.cos(ang) * rad - tam / 2}px;top:${Math.sin(ang) * rad - tam / 2}px;width:${tam}px;height:${tam}px;` +
+      `--d:${5 + Math.random() * 6}s;--x:${(Math.random() - .5) * 40}px;--y:${(Math.random() - .5) * 40}px`;
+    // la onda de luz sale del centro: las luces más lejanas destellan un poco después
+    b.innerHTML = `<i style="--b:${(tam > 30 ? 2.5 : 1) + Math.random()}px;--r:${((rad - 190) / 230 * .35).toFixed(2)}s"></i>`;
+    halo.appendChild(b);
+  }
+}
+crearBokeh();
+
+// ---- tiempo real ----
+const socket = io();
+socket.on('llegada', encolar);
+socket.on('mensaje', encolarMensaje);
+socket.on('mensaje-borrado', d => quitarNota(d.id));
+socket.on('reinicio', () => location.reload());
+socket.on('connect', () => { $('conexion').style.display = 'none'; if (cfg) sincronizar(); });
+socket.on('disconnect', () => { $('conexion').style.display = 'block'; });
+
+// ---- teclado ----
+let demoN = 0;
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  if (k === 'd') {
+    const m = 1 + Math.floor(Math.random() * cfg.mesas);
+    const libres = [...Array(cfg.asientos).keys()].filter(i => ![...ocupados.values()].some(x => x.mesa === m && x.asiento === i));
+    if (!libres.length) return;
+    encolar({ id: 'demo' + (++demoN), nombre: ['Test Guest', 'Emily Carter', 'James Walker', 'Sophia Bennett'][demoN % 4], mesa: m, asiento: libres[0], hora: Date.now() });
+  }
+});
+setTimeout(() => $('ayuda').style.opacity = 0, 8000);
+if ('wakeLock' in navigator) { const pedir = () => navigator.wakeLock.request('screen').catch(() => {}); pedir(); document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && pedir()); }
+
+iniciar();
+</script>
+</body>
+</html>

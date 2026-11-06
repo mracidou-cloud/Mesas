@@ -39,6 +39,40 @@
   .resumen span{font-size:12px;padding:4px 9px;border-radius:20px;background:#f2ecdf}
   .resumen span.mal{background:#f8dcd7;color:#8d2a22}
   .resumen span.ok{background:#dcefdc;color:#24622f}
+  .interruptor{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;margin:0}
+  .interruptor input{display:none}
+  .riel{width:46px;height:26px;border-radius:20px;background:#d9d1bf;position:relative;transition:.25s}
+  .riel i{position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.25s}
+  .interruptor input:checked + .riel{background:#3a9b4f}
+  .interruptor input:checked + .riel i{left:23px}
+  .deseos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+  .deseo{background:#1b0d30;border-radius:10px;padding:8px;color:#f7dc8c;font-size:12px;position:relative}
+  .deseo img{display:block;width:100%;height:90px;object-fit:contain}
+  .deseo .pie{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:6px}
+  .deseo .pie span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .disenos{display:flex;gap:14px;flex-wrap:wrap}
+  .diseno{display:flex;flex-direction:column;gap:3px;cursor:pointer;font-weight:500;margin:0}
+  .diseno input{display:none}
+  .muestra{position:relative;display:block;width:200px;height:113px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 2px #e6dcc6;background:#eee center/cover}
+  .diseno small a{color:var(--oro)}
+  .diseno .actual{font-size:11px;font-weight:700;color:#2c7a3d}
+  .muestra i{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px}
+  .muestra em{position:absolute;left:12px;top:30px;width:22px;height:22px;border-radius:50%}
+  .diseno input:checked + .muestra{box-shadow:0 0 0 3px var(--oro)}
+  .diseno small{color:var(--gris);font-size:12px;max-width:200px;line-height:1.35}
+  .ed-lienzo{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin-top:12px;background:#1b0d30 center/cover;
+    box-shadow:0 0 0 1px #e6dcc6;user-select:none;touch-action:none}
+  .ed-zona{position:absolute;border:1.5px dashed rgba(255,255,255,.55);border-radius:8px;color:rgba(255,255,255,.75);font-size:11px;font-weight:600;padding:4px 6px;pointer-events:none}
+  .ed-lienzo.claro .ed-zona{border-color:rgba(75,52,40,.35);color:rgba(75,52,40,.6)}
+  .ed-mesa,.ed-qr{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none}
+  .ed-mesa:active,.ed-qr:active{cursor:grabbing}
+  .ed-mesa svg{width:100%;height:100%;overflow:visible;display:block}
+  .ed-mesa.choca svg .base{stroke:#e74c3c !important;stroke-width:.09 !important}
+  .ed-mesa.choca::after{content:'';position:absolute;inset:-6%;border-radius:50%;box-shadow:0 0 0 2px #e74c3c}
+  .ed-qr{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#1a2036}
+  .ed-qr i{position:absolute;inset:0;background:#fbf3e2;border-radius:10%;box-shadow:0 0 0 2px #e0b04a,0 4px 14px rgba(0,0,0,.35)}
+  .ed-qr b{position:relative}
+  .ed-mesa.arrastrando,.ed-qr.arrastrando{z-index:5;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
   #login{max-width:360px;margin:12vh auto}
   .oculto{display:none}
   .llego{color:#2c7a3d;font-weight:600}
@@ -66,11 +100,14 @@
       <div><label>Number of tables</label><input id="c-mesas" type="number" min="1" max="40"></div>
       <div><label>Guests per table</label><input id="c-asientos" type="number" min="1" max="20"></div>
     </div>
+    <div style="margin-top:16px"><label>Screen design</label>
+      <div class="disenos" id="disenos"></div>
+    </div>
     <div style="margin-top:16px"><label>Table names (optional — e.g. “Couple”, “Family”)</label><div class="nombres" id="c-nombres"></div></div>
-    <div style="margin-top:16px;display:none"><label>Couple video (optional)</label>
+    <div style="margin-top:16px"><label>Couple video (optional — used by the Classic and Navy ring designs)</label>
       <input id="c-video" placeholder="YouTube link, link to an .mp4, or a file name uploaded to the public folder (e.g. couple.mp4)">
       <div style="font-size:12px;color:var(--gris);margin-top:5px">If left empty, an animation of a dancing couple is shown.</div></div>
-    <div style="margin-top:12px;display:none"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="c-deco" style="width:auto"> Show couple video / dancing couple on screen</label></div>
+    <div style="margin-top:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="c-deco" style="width:auto"> Show the couple video / dancing couple (Classic and Navy ring designs)</label></div>
     <div class="grid" style="margin-top:16px;grid-template-columns:2fr 1fr">
       <div><label>Background image</label><input id="c-img" placeholder="fondo.jpg"></div><div></div>
       <div><label>Background video (optional)</label><input id="c-fondo" placeholder="e.g. background.mp4 (uploaded to the public folder) or a link to an .mp4"></div>
@@ -113,12 +150,34 @@
     <p class="desc">If someone picked the wrong name, remove it in the table above (“undo check-in” button). Before starting a new event, reset all check-ins.</p>
     <div class="acciones" style="margin-top:0"><button class="peligro" id="reiniciar">Reset all check-ins</button><span id="llegados" style="font-size:14px"></span></div>
   </div>
+
+  <div class="card">
+    <h2>4. Layout — move the tables and the QR ✥</h2>
+    <p class="desc">Drag each table and the QR code to where you want them, then press <b>Save layout</b>. The screen updates right away. Tables in <span style="color:#c0392b;font-weight:600">red</span> are overlapping something.</p>
+    <div class="acciones" style="margin-top:0" id="ed-disenos"></div>
+    <div class="ed-lienzo" id="ed-lienzo"></div>
+    <div class="aviso" id="ed-nota" style="display:none"></div>
+    <div class="acciones">
+      <button class="oro" id="ed-guardar">Save layout</button>
+      <button id="ed-auto">Reset to automatic</button>
+      <a id="ed-ver" target="_blank" style="font-size:14px">Preview ↗</a>
+      <span id="ed-estado" style="font-size:13px"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5. Wishes wall ✍️</h2>
+    <p class="desc">After checking in, guests can write a short message with their finger. It appears on the big screen in a column on the right that keeps scrolling; the wish in the middle is shown larger.</p>
+    <label class="interruptor"><input type="checkbox" id="m-activo"><span class="riel"><i></i></span> <b id="m-estado">Off</b></label>
+    <div class="acciones"><span id="m-cuenta" style="font-size:14px;color:var(--gris)"></span><span style="flex:1"></span><button class="peligro" id="m-borrar-todos">Delete all wishes</button></div>
+    <div class="deseos" id="m-lista"></div>
+  </div>
 </div>
 
+<script src="/plano.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 let clave = sessionStorage.getItem('clave') || '', datos, filas = [], sucio = false;
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 async function api(ruta, cuerpo = {}) {
   const r = await fetch('/api/admin/' + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clave, ...cuerpo }) });
@@ -137,7 +196,10 @@ async function cargar() {
   $('login').classList.add('oculto'); $('panel').classList.remove('oculto');
   const c = datos.config;
   $('c-evento').value = c.evento || ''; $('c-sub').value = c.subtitulo || '';
-  $('c-mesas').value = c.mesas; $('c-video').value = c.video || ''; $('c-deco').checked = c.decoracion !== false; $('c-fondo').value = c.videoFondo || ''; $('c-img').value = c.imagenFondo || 'fondo.jpg'; $('c-op').value = c.opacidadFondo ?? 40; $('c-op-val').textContent = $('c-op').value; $('c-asientos').value = c.asientosPorMesa;
+  $('c-mesas').value = c.mesas; $('c-video').value = c.video || ''; $('c-deco').checked = c.decoracion !== false; $('c-fondo').value = c.videoFondo || ''; $('disenos').innerHTML = (datos.disenos || []).map(d => `<label class="diseno"><input type="radio" name="tema" value="${d.id}" ${d.id === (c.tema || 'elegant') ? 'checked' : ''}>
+    <span class="muestra" style="background-image:url('/disenos/${d.id}.jpg')"></span>
+    <b>${esc(d.nombre)} ${d.id === (c.tema || 'elegant') ? '<span class="actual">● in use</span>' : ''}</b>
+    <small>${esc(d.descripcion)}${d.mural ? '' : ' · <i>no wishes wall</i>'}<br><a href="/pantalla/${d.id}" target="_blank">Preview ↗</a></small></label>`).join(''); $('c-img').value = c.imagenFondo || 'fondo.jpg'; $('c-op').value = c.opacidadFondo ?? 40; $('c-op-val').textContent = $('c-op').value; $('c-asientos').value = c.asientosPorMesa;
   pintarNombres(c.nombresMesas);
   filas = datos.invitados.map(g => ({ id: g.id, nombre: g.nombre, mesa: g.mesa, llego: g.asiento !== null }));
   sucio = false; pintarFilas();
@@ -146,6 +208,8 @@ async function cargar() {
     ? `<div class="msg ok" style="margin:0 0 10px;font-weight:600">✓ Auto-save to GitHub is ON (${esc(g.repo)}). Every change you save here is stored in GitHub automatically — nothing else to do.</div>`
     : `<div class="aviso" style="margin:0 0 10px">Auto-save to GitHub is OFF. To turn it on, add <b>GITHUB_TOKEN</b> and <b>GITHUB_REPO</b> in Render → Environment (see README).</div>`;
   $('gh-manual').style.display = g.activo ? 'none' : '';
+  cargarDeseos().catch(() => {});
+  if (!ED.sucio) abrirEditor(ED.id);
   $('llegados').textContent = `${filas.filter(f => f.llego).length} of ${filas.length} have arrived`;
 }
 $('entrar').onclick = () => { clave = $('clave').value; cargar().catch(e => $('lmsg').textContent = e.message); };
@@ -165,7 +229,7 @@ $('g-config').onclick = async () => {
   const nombresMesas = {}; document.querySelectorAll('#c-nombres input').forEach(i => { if (i.value.trim()) nombresMesas[i.dataset.m] = i.value.trim(); });
   try {
     const nueva = $('c-clave').value.trim();
-    const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, video: $('c-video').value, decoracion: $('c-deco').checked, videoFondo: $('c-fondo').value, imagenFondo: $('c-img').value, opacidadFondo: $('c-op').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
+    const d = await api('config', { config: { evento: $('c-evento').value, subtitulo: $('c-sub').value, video: $('c-video').value, decoracion: $('c-deco').checked, videoFondo: $('c-fondo').value, tema: (document.querySelector('input[name=tema]:checked') || {}).value, imagenFondo: $('c-img').value, opacidadFondo: $('c-op').value, mesas: $('c-mesas').value, asientosPorMesa: $('c-asientos').value, nombresMesas, claveAdmin: nueva } });
     if (nueva) { clave = nueva; sessionStorage.setItem('clave', clave); $('c-clave').value = ''; }
     const pend = sucio; await (pend ? Promise.resolve() : cargar());
     mensaje('m-config', true, '✓ Saved. The screen has been updated.' + ghTexto(d.github), d.avisos);
@@ -196,7 +260,7 @@ $('filas').addEventListener('input', e => {
 });
 $('filas').addEventListener('click', async e => {
   if (e.target.dataset.borrar !== undefined) { filas.splice(+e.target.dataset.borrar, 1); sucio = true; pintarFilas(); }
-  if (e.target.dataset.quitar) { if (!confirm('Undo this guest’s check-in? Their seat will be freed on the screen.')) return; await api('quitar', { id: e.target.dataset.quitar }); await cargar(); }
+  if (e.target.dataset.quitar) { if (!confirm('Undo this guest’s check-in? Their seat (and their wish, if any) will be cleared on the screen.')) return; await api('quitar', { id: e.target.dataset.quitar }); await cargar(); }
 });
 $('agregar').onclick = () => { const ultima = filas.length ? filas[filas.length - 1].mesa : 1; filas.push({ nombre: '', mesa: ultima, llego: false }); sucio = true; pintarFilas(); const ins = document.querySelectorAll('#filas input[data-k=nombre]'); ins[ins.length - 1].focus(); };
 $('vaciar').onclick = () => { if (confirm('Clear the whole list? (Nothing is saved until you press “Save”)')) { filas = []; sucio = true; pintarFilas(); } };
@@ -230,9 +294,124 @@ $('g-invitados').onclick = async () => {
   catch (e) { mensaje('m-invitados', false, e.message); }
 };
 $('reiniciar').onclick = async () => {
-  if (!confirm('Delete ALL check-ins? Every seat will be empty again.')) return;
+  if (!confirm('Delete ALL check-ins? Every seat will be empty again, and all wishes will be deleted too.')) return;
   await api('reiniciar'); await cargar();
 };
+
+
+// ---- editor de distribución (arrastrar mesas y QR) ----
+const ED = { id: null, mesas: {}, qr: null, sucio: false, P: null };
+const EST = { W: 1920, H: 1080 };
+const QR_TAM = { elegant: { w: 330, h: 330, giro: 45 }, clay: { w: 384, h: 448, giro: 0 } };
+const PASTEL_ED = ['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'];
+function editables() { return (datos.disenos || []).filter(d => d.editable); }
+function abrirEditor(id) {
+  const ds = editables(); if (!ds.length) return;
+  if (!ds.some(d => d.id === id)) id = ds.some(d => d.id === datos.config.tema) ? datos.config.tema : ds[0].id;
+  ED.id = id; ED.sucio = false;
+  $('ed-disenos').innerHTML = ds.map(d => `<button class="${d.id === id ? 'oro' : ''}" data-ed="${d.id}">${esc(d.nombre)}${d.id === datos.config.tema ? ' ●' : ''}</button>`).join('')
+    + '<span style="font-size:12px;color:var(--gris)">(Classic and Navy ring arrange their tables automatically)</span>';
+  const P = calcularEscena(datos.config.mesas, datos.config.asientosPorMesa, (datos.posiciones || {})[id]);
+  ED.P = P; ED.mesas = {}; P.mesas.forEach(m => ED.mesas[m.numero] = { x: Math.round(m.cx), y: Math.round(m.cy) });
+  ED.qr = { x: P.qr.x, y: P.qr.y };
+  const d = ds.find(x => x.id === id), lz = $('ed-lienzo');
+  lz.style.background = d.fondo && d.fondo.startsWith('/') ? `#1b0d30 url('${d.fondo}') center/cover` : d.fondo;
+  lz.classList.toggle('claro', id === 'clay');
+  $('ed-ver').href = '/pantalla/' + id;
+  $('ed-nota').style.display = id === 'elegant' ? '' : 'none';
+  $('ed-nota').textContent = 'Tip: in Elegant the gold diamond is part of the background image — the QR looks best centered inside it.';
+  pintarEditor(); estadoEd('');
+}
+const pct = (v, total) => (v / total * 100).toFixed(3) + '%';
+function pintarEditor() {
+  const P = ED.P, lz = $('ed-lienzo'), al = P.alcance, id = ED.id;
+  const zonas = [
+    ['Title', 60, 36, id === 'clay' ? 560 : 520, id === 'clay' ? 330 : 400],
+    ...(datos.config && cfgMural() ? [['Wishes wall', 1490, 10, 420, 1060]] : [])];
+  let h = zonas.map(([t, x, y, w, hh]) => `<div class="ed-zona" style="left:${pct(x, EST.W)};top:${pct(y, EST.H)};width:${pct(w, EST.W)};height:${pct(hh, EST.H)}">${t}</div>`).join('');
+  const q = QR_TAM[id] || QR_TAM.elegant;
+  h += `<div class="ed-qr" data-qr="1" style="left:${pct(ED.qr.x, EST.W)};top:${pct(ED.qr.y, EST.H)};width:${pct(q.w, EST.W)};height:${pct(q.h, EST.H)}"><i style="transform:rotate(${q.giro}deg)"></i><b>QR</b></div>`;
+  const n = datos.config.asientosPorMesa, rs = P.rSilla / al, rm = (id === 'clay' ? P.R * 1.12 : P.R) / al, ra = (al - P.rSilla) / al;
+  for (const [num, p] of Object.entries(ED.mesas)) {
+    const color = id === 'clay' ? PASTEL_ED[(num - 1) % 8] : '#2a1548';
+    const borde = id === 'clay' ? '#fff' : '#e0b04a', texto = id === 'clay' ? '#4b3428' : '#fbf3e2';
+    let sv = `<svg viewBox="-1 -1 2 2"><circle class="base" r="${rm}" fill="${color}" stroke="${borde}" stroke-width=".04"/>`;
+    for (let j = 0; j < n; j++) { const a = -Math.PI / 2 + j * 2 * Math.PI / n; sv += `<circle cx="${(ra * Math.cos(a)).toFixed(3)}" cy="${(ra * Math.sin(a)).toFixed(3)}" r="${rs}" fill="${id === 'clay' ? '#fffaf2' : 'rgba(22,9,40,.8)'}" stroke="${borde}" stroke-width=".02" opacity=".9"/>`; }
+    sv += `<text y=".12" text-anchor="middle" font-size=".5" font-family="Georgia,serif" fill="${texto}">${num}</text></svg>`;
+    h += `<div class="ed-mesa" data-mesa="${num}" style="left:${pct(p.x, EST.W)};top:${pct(p.y, EST.H)};width:${pct(2 * al, EST.W)};aspect-ratio:1">${sv}</div>`;
+  }
+  lz.innerHTML = h;
+  marcarChoques();
+}
+function cfgMural() { const d = (datos.disenos || []).find(x => x.id === ED.id); return d && d.mural; }
+function marcarChoques() {
+  const al = ED.P.alcance, q = QR_TAM[ED.id] || QR_TAM.elegant, rq = Math.max(q.w, q.h) / 2 * (q.giro ? 1.2 : 1);
+  const ps = Object.entries(ED.mesas);
+  for (const [num, p] of ps) {
+    let choca = Math.hypot(p.x - ED.qr.x, p.y - ED.qr.y) < al + rq * .85;
+    for (const [n2, p2] of ps) if (n2 !== num && Math.hypot(p.x - p2.x, p.y - p2.y) < 2 * al * .95) choca = true;
+    const e = $('ed-lienzo').querySelector(`[data-mesa="${num}"]`); if (e) e.classList.toggle('choca', choca);
+  }
+}
+function estadoEd(t, ok) { $('ed-estado').innerHTML = t ? `<span style="color:${ok ? '#2c7a3d' : '#a3352d'}">${t}</span>` : (ED.sucio ? '<span style="color:#a3352d">● Unsaved changes</span>' : ''); }
+// arrastrar
+let arr = null;
+$('ed-lienzo').addEventListener('pointerdown', e => {
+  const el = e.target.closest('.ed-mesa,.ed-qr'); if (!el) return;
+  e.preventDefault(); el.setPointerCapture(e.pointerId); el.classList.add('arrastrando');
+  const r = $('ed-lienzo').getBoundingClientRect(), k = EST.W / r.width;
+  const obj = el.dataset.qr ? ED.qr : ED.mesas[el.dataset.mesa];
+  arr = { el, obj, k, r, dx: obj.x - (e.clientX - r.left) * k, dy: obj.y - (e.clientY - r.top) * k };
+});
+$('ed-lienzo').addEventListener('pointermove', e => {
+  if (!arr) return;
+  const x = Math.round(Math.max(30, Math.min(EST.W - 30, (e.clientX - arr.r.left) * arr.k + arr.dx)));
+  const y = Math.round(Math.max(30, Math.min(EST.H - 30, (e.clientY - arr.r.top) * arr.k + arr.dy)));
+  arr.obj.x = x; arr.obj.y = y; arr.el.style.left = pct(x, EST.W); arr.el.style.top = pct(y, EST.H);
+  marcarChoques(); ED.sucio = true; estadoEd('');
+});
+['pointerup', 'pointercancel'].forEach(t => $('ed-lienzo').addEventListener(t, () => { if (arr) { arr.el.classList.remove('arrastrando'); arr = null; } }));
+$('ed-disenos').addEventListener('click', e => {
+  const id = e.target.closest('button') && e.target.closest('button').dataset.ed; if (!id) return;
+  if (ED.sucio && !confirm('You have unsaved layout changes. Switch anyway?')) return;
+  abrirEditor(id);
+});
+$('ed-guardar').onclick = async () => {
+  try { const d = await api('posiciones', { diseno: ED.id, posiciones: { mesas: ED.mesas, qr: ED.qr } });
+    datos.posiciones = datos.posiciones || {}; datos.posiciones[ED.id] = { mesas: { ...ED.mesas }, qr: { ...ED.qr } };
+    ED.sucio = false; estadoEd('✓ Layout saved. The screen has been updated.' + ghTexto(d.github), true); }
+  catch (e) { estadoEd(e.message); }
+};
+$('ed-auto').onclick = async () => {
+  if (!confirm('Put every table and the QR back in their automatic places?')) return;
+  try { await api('posiciones', { diseno: ED.id, posiciones: null }); if (datos.posiciones) delete datos.posiciones[ED.id]; abrirEditor(ED.id); estadoEd('✓ Back to the automatic layout.', true); }
+  catch (e) { estadoEd(e.message); }
+};
+
+// ---- mural de deseos ----
+async function cargarDeseos() {
+  const d = await api('mensajes');
+  $('m-activo').checked = d.activo;
+  $('m-estado').innerHTML = !d.activo ? 'Off' : d.disenoMural ? 'On — guests can write wishes'
+    : `On, but the <i>${esc(d.disenoNombre)}</i> design doesn’t show a wishes wall — choose Elegant or Soft clay to use it`;
+  $('m-cuenta').textContent = `${d.lista.length} wish${d.lista.length === 1 ? '' : 'es'}`;
+  $('m-lista').innerHTML = d.lista.length ? d.lista.map(m => `<div class="deseo"><img src="${m.img}" alt=""><div class="pie"><span>${esc(m.nombre)} · T${m.mesa}</span><button class="mini peligro" data-borrar-deseo="${m.id}">Delete</button></div></div>`).join('')
+    : '<div style="color:var(--gris);font-size:14px">No wishes yet.</div>';
+}
+$('m-activo').onchange = async () => {
+  const d = await api('mensajes-activar', { activo: $('m-activo').checked });
+  await cargarDeseos();
+};
+$('m-lista').addEventListener('click', async e => {
+  const id = e.target.dataset.borrarDeseo; if (!id) return;
+  if (!confirm('Delete this wish? It will disappear from the screen.')) return;
+  await api('mensaje-borrar', { id }); await cargarDeseos();
+});
+$('m-borrar-todos').onclick = async () => {
+  if (!confirm('Delete ALL wishes from the wall?')) return;
+  await api('mensaje-borrar', { todos: true }); await cargarDeseos();
+};
+setInterval(() => { if (!$('panel').classList.contains('oculto')) cargarDeseos().catch(() => {}); }, 15000);
 addEventListener('beforeunload', e => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });
 if (clave) cargar().catch(() => { sessionStorage.removeItem('clave'); });
 </script>
