@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#1b0d30">
 <title>Find your table</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600&family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600&family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&family=Pinyon+Script&family=Cormorant+SC:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{--fondo:#1b0d30;--oro:#d6b46f;--oro2:#f1dca6;--marfil:#f8f2e6;--tinta:#1a2036;--gris:#8a8576;
     --serif:'Cormorant Garamond',Georgia,serif;--sans:'Montserrat',system-ui,sans-serif}
@@ -150,6 +150,40 @@
   .frost .color.on{box-shadow:0 0 0 3px #3f9a9c}
   .frost .pestanas{background:#dde6ee}
   .frost .emojis button{background:#e6edf3}
+
+  /* ===== Tema "Romantic invitation" ===== */
+  body.romance{--tinta:#2b2420;--gris:#6d5f57;--oro:#6e2c3b;background:#f4eee5}
+  .romance .top{background:#3d1a22;border-radius:0 0 50% 50% / 0 0 22px 22px}
+  .romance .adorno{color:#c9d0ad;font-family:'Cormorant SC',serif;letter-spacing:.35em}
+  .romance .top h1{font-family:'Pinyon Script',cursive;font-weight:400;font-size:44px;line-height:1.2}
+  .romance .card{border-radius:6px;border:0;background:#fffdf9;outline:1px solid #b9c19a;outline-offset:-8px;box-shadow:0 18px 36px rgba(61,26,34,.14)}
+  .romance h2{font-family:'Pinyon Script',cursive;font-weight:400;font-size:38px}
+  .romance input,.romance #texto-deseo{border-color:#e1d8c8;background:#fffdf9;border-radius:6px}
+  .romance input:focus,.romance #texto-deseo:focus{border-color:#8e9a6c;box-shadow:0 0 0 4px rgba(142,154,108,.2)}
+  .romance li button::after{color:#6e2c3b}
+  .romance .btn{border-radius:4px;font-family:'Cormorant SC',serif;letter-spacing:.18em;font-size:17px}
+  .romance .btn.oro{background:#3d1a22;color:#f6efe6;box-shadow:0 8px 18px rgba(61,26,34,.25)}
+  .romance .btn.claro{border-color:#d9cfbf;color:#6d5f57}
+  .romance .grande,.romance .resultado .nombre{font-family:'Pinyon Script',cursive;font-weight:400;font-size:40px}
+  .romance .hola{color:#6b7a4c;font-family:'Cormorant SC',serif;letter-spacing:.35em}
+  .romance .medalla small{color:#fbf7ee;font-family:'Cormorant SC',serif}
+  .romance .medalla b{font-family:'Pinyon Script',cursive;color:#fbf7ee;font-size:96px;line-height:1.1}
+  .romance .medalla{box-shadow:0 0 0 3px #fffdf9,0 0 0 5px #b9c19a,0 18px 36px rgba(61,26,34,.3)}
+  .romance .nmesa{color:#6b7a4c}
+  .romance .deseo-box{background:#3d1a22;color:#f6efe6;border-radius:6px;outline:1px solid rgba(246,239,230,.3);outline-offset:-7px}
+  .romance .deseo-box > div:first-child{font-family:'Pinyon Script',cursive !important;font-weight:400 !important;font-size:34px !important}
+  .romance .deseo-box .listo{color:#c9d0ad}
+  .romance svg#mini{background:#f1ebe1}
+  .romance .m-num{fill:#3d1a22;font-family:'Pinyon Script',cursive}
+  .romance .m-tu .m-base{stroke-width:7 !important}
+  .romance .m-silla{stroke:#cbbfae;fill:#fbf7f0}
+  .romance .m-silla.tu{fill:#6e2c3b;stroke:#fff}
+  .romance .pad{background:#fffdf9;box-shadow:inset 0 0 0 1px #d9cfbf,inset 0 6px 14px rgba(61,26,34,.06);border-radius:6px}
+  .romance .pad .guia{color:rgba(109,95,87,.45)}
+  .romance .color.on{box-shadow:0 0 0 3px #8e9a6c}
+  .romance .pestanas{background:#efe8dc;border-radius:6px}
+  .romance .pestanas button{border-radius:4px;font-family:'Cormorant SC',serif;letter-spacing:.1em;font-size:16px}
+  .romance .emojis button{background:#f4eee5;border-radius:6px}
   .error{color:#a3352d;text-align:center;font-size:14px;margin-top:10px;min-height:1em}
   .otros{margin-top:18px;font-size:13px;color:var(--gris);text-align:center;line-height:1.7}
   .otros b{color:var(--tinta);font-weight:600}
@@ -241,6 +275,13 @@ async function iniciar() {
   [cfg, invitados] = await Promise.all([fetch('/api/config').then(r => r.json()), fetch('/api/invitados').then(r => r.json())]);
   $('evento').textContent = cfg.evento; document.title = cfg.evento;
   document.body.classList.add('tema-' + cfg.tema);
+  if (cfg.tema === 'romance') {
+    document.body.classList.add('romance');
+    document.querySelector('meta[name=theme-color]').content = '#3d1a22';
+    const tintas = ['#6e2c3b', '#5d6844', '#2b2420', '#b9707e'];
+    document.querySelectorAll('.color').forEach((b, i) => { b.dataset.c = tintas[i]; b.style.background = tintas[i]; });
+    color = tintas[0];
+  }
   if (cfg.tema === 'clay' || cfg.tema === 'frost') {
     const frost = cfg.tema === 'frost';
     document.body.classList.add('clay'); if (frost) document.body.classList.add('frost');
@@ -286,7 +327,10 @@ $('otro').onclick = () => { $('q').value = ''; $('res').innerHTML = ''; vista('v
 function mostrar(d, nuevo) {
   $('r-nombre').textContent = d.nombre;
   $('r-num').textContent = d.mesa;
-  if (cfg.tema === 'frost') {
+  if (cfg.tema === 'romance') {
+    const c = [['#c4808e', '#6e2c3b', '#3d1a22'], ['#c9d0ad', '#8e9a6c', '#5d6844'], ['#efc9ce', '#c98f99', '#9a5b67'], ['#b9b98a', '#6f6f3e', '#45451f']][(d.mesa - 1) % 4];
+    document.querySelector('.medalla').style.background = `radial-gradient(circle at 35% 28%,${c[0]},${c[1]} 62%,${c[2]})`;
+  } else if (cfg.tema === 'frost') {
     const c = [['#c9efec', '#6fc0bd', '#3f9a9c', '#14363a'], ['#9fb6d1', '#3f5a7a', '#22374f', '#f4f8fb'], ['#ffffff', '#dbe8f1', '#a9c3d6', '#1d2b3c'], ['#dcdcf6', '#9a9cd4', '#6c6fae', '#1d1f4a'],
       ['#d3e3f2', '#8fb0cf', '#5f84aa', '#13283f'], ['#d8f1e8', '#93cfbd', '#5ea894', '#123a30'], ['#c5cfe0', '#7f8fb0', '#55627f', '#f4f8fb'], ['#e9eef3', '#b8c6d4', '#8799ac', '#1d2b3c']][(d.mesa - 1) % 8];
     const md = document.querySelector('.medalla');
@@ -318,6 +362,7 @@ function mini(d) {
     const tu = m.numero === d.mesa;
     const sillas = m.sillas.map((s, i) => `<circle class="m-silla ${tu && i === d.asiento ? 'tu' : ''}" cx="${s.x}" cy="${s.y}" r="${P.rSilla * .85}"/>`).join('');
     const relleno = cfg.tema === 'clay' ? ` style="fill:${['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'][(m.numero - 1) % 8]}"`
+      : cfg.tema === 'romance' ? ` style="fill:#fffdf9;stroke:${['#6e2c3b', '#8e9a6c', '#c98f99', '#6f6f3e'][(m.numero - 1) % 4]};stroke-width:3"`
       : cfg.tema === 'frost' ? ` style="fill:${['#6fc0bd', '#3f5a7a', '#dbe8f1', '#9a9cd4', '#8fb0cf', '#93cfbd', '#7f8fb0', '#b8c6d4'][(m.numero - 1) % 8]}"` : '';
     return `<g class="${tu ? 'm-tu' : ''}"><circle class="m-base" cx="${m.cx}" cy="${m.cy}" r="${P.R}"${relleno}/><text class="m-num" x="${m.cx}" y="${m.cy}">${m.numero}</text>${sillas}</g>`;
   }).join('');

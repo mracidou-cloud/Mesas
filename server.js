@@ -120,6 +120,7 @@ const DISENOS = [
   { id: 'elegant', nombre: 'Elegant', descripcion: 'Purple & gold, tilted QR in a diamond frame', mural: true, editable: true, fondo: '/fondo.jpg' },
   { id: 'clay', nombre: 'Soft clay', descripcion: 'Pastel, rounded and playful', mural: true, editable: true, fondo: 'linear-gradient(160deg,#f9f2e8,#f3e8da)' },
   { id: 'frost', nombre: 'Frosted slate', descripcion: 'Cool blue-gray frosted glass, navy & teal', mural: true, editable: true, fondo: 'linear-gradient(160deg,#b6c5d4,#8597ac)' },
+  { id: 'romance', nombre: 'Romantic invitation', descripcion: 'Ivory paper, sage & burgundy, calligraphy, QR inside a wax seal', mural: true, editable: true, fondo: 'linear-gradient(160deg,#fbf8f3,#f1e9de)' },
   { id: 'ring', nombre: 'Navy ring', descripcion: 'Navy & gold, tables in a ring around the QR, dancing couple', mural: false },
   { id: 'classic', nombre: 'Classic', descripcion: 'Navy & gold, table grid, side panel with QR, counter and recent arrivals', mural: false },
 ];

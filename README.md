@@ -22,10 +22,11 @@ Each design is saved as its own file in `public/disenos/` (one doesn’t affect 
 | **Elegant** (`elegant`) | Purple & gold background, tilted QR in a diamond frame | ✓ |
 | **Soft clay** (`clay`) | Pastel, rounded “clay” style, colorful tables | ✓ |
 | **Frosted slate** (`frost`) | Cool blue-gray frosted glass, navy & teal | ✓ |
+| **Romantic invitation** (`romance`) | Ivory paper, sage & burgundy, calligraphy, QR inside a wax seal | ✓ |
 | **Navy ring** (`ring`) | Navy & gold, tables in a ring around the QR, dancing couple | — |
 | **Classic** (`classic`) | Navy & gold, table grid, side panel with QR, counter and recent arrivals | — |
 
-**Layout editor** (/admin → 4. Layout): drag each table and the QR code to where you want them in the Elegant, Soft clay and Frosted slate designs, then press *Save layout*. Tables that overlap something turn red. *Reset to automatic* puts everything back. Classic and Navy ring arrange their tables automatically.
+**Layout editor** (/admin → 4. Layout): drag each table and the QR code to where you want them in the Elegant, Soft clay, Frosted slate and Romantic invitation designs, then press *Save layout*. Tables that overlap something turn red. *Reset to automatic* puts everything back. Classic and Navy ring arrange their tables automatically.
 
 Preview any design at `/pantalla/<id>` (e.g. `/pantalla/clay`). The phone page follows the chosen design.
 

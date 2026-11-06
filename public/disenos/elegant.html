@@ -276,20 +276,25 @@ async function sincronizarYa() {
 }
 
 // ---------- mural de deseos ----------
-// Una sola columna a la derecha. Cada mensaje sube al centro, se queda grande unos 2 s
-// y luego la columna avanza al siguiente.
-const notas = new Map();                 // id -> { m, el, s, vis }
-const PASO = 122, ZOOM = .42, QUIETO = 2200, MUEVE = 900;  // separación, cuánto crece la del centro, ms en grande, ms del cambio
-let paso = null;
-let pausaMural = false, ultimoT = 0;
+// Una columna a la derecha con las tarjetas JUNTAS, una debajo de otra.
+// La tarjeta del centro se ve grande ~2 s y luego la columna pasa a la siguiente.
+// Si caben en la pantalla, la fila va y viene; si son muchas, giran en círculo sin huecos.
+const notas = new Map();           // id -> { m, el, y }   (y = posición en pantalla)
+let orden = [];                    // ids en el orden de la columna
+const PASO = 122, ZOOM = .42, QUIETO = 2200, MUEVE = 900;   // separación, cuánto crece la del centro, ms en grande, ms del cambio
+let foco = 0, focoDesde = 0, focoHasta = 0, fase = 'quieto', tFase = 0, pausaMural = false, ultimoT = 0;
 const altoMural = () => $('mural').clientHeight;
-const largoMural = () => Math.max(notas.size * PASO, altoMural() + PASO * 2);
+const enCirculo = () => orden.length * PASO >= altoMural() + PASO * 2;
+function destinoY(i, H) {
+  let d = i - foco;
+  if (enCirculo()) { const N = orden.length; d = ((d % N) + N) % N; if (d > N / 2) d -= N; }
+  return H / 2 + d * PASO;
+}
 function colocar(n, H) {
-  const y = H + PASO / 2 - n.vis;                         // centro vertical de la tarjeta
-  const d = Math.abs(y - H / 2), f0 = Math.max(0, 1 - d / (PASO * 1.7)), f = f0 * f0 * (3 - 2 * f0);
-  n.el.style.transform = `translateY(${(y - 45).toFixed(1)}px) scale(${(1 + ZOOM * f).toFixed(3)})`;
+  const d = Math.abs(n.y - H / 2), f0 = Math.max(0, 1 - d / (PASO * 1.7)), f = f0 * f0 * (3 - 2 * f0);
+  n.el.style.transform = `translateY(${(n.y - 45).toFixed(1)}px) scale(${(1 + ZOOM * f).toFixed(3)})`;
   n.el.style.zIndex = Math.round(f * 100);
-  n.el.style.visibility = (y < -PASO || y > H + PASO) ? 'hidden' : '';
+  n.el.style.visibility = (n.y < -PASO || n.y > H + PASO) ? 'hidden' : '';
   n.el.classList.toggle('centro', f > .85);
 }
 function pegarNota(m, nueva, enCentro) {
@@ -297,54 +302,45 @@ function pegarNota(m, nueva, enCentro) {
   const el = document.createElement('div'); el.className = 'slot';
   el.innerHTML = `<div class="nota${nueva ? ' nueva' : ''}" id="nota-${m.id}"><img src="${m.img}" alt=""><span>${esc(m.nombre)} · Table ${m.mesa}</span></div>`;
   $('mural').appendChild(el);
-  const H = altoMural(); let s;
-  if (enCentro) {
-    s = H / 2 + PASO / 2;                                  // justo en el centro
-    for (const o of notas.values()) if (o.s >= s - PASO / 2) o.s += PASO;   // los de arriba se corren para hacerle lugar
-  } else {
-    const todas = [...notas.values()];
-    s = todas.length ? Math.min(...todas.map(o => o.s)) - PASO : H / 2 + PASO / 2;   // el primero en el centro, los demás debajo
-  }
-  const n = { m, el, s, vis: s }; notas.set(m.id, n);
-  const L = largoMural(); for (const o of notas.values()) { o.s = ((o.s % L) + L) % L; if (o === n) o.vis = o.s; }
-  if ([...notas.values()].some(o => o !== n && Math.abs(o.s - n.s) < PASO * .9)) reacomodar(n, H);
+  const H = altoMural();
+  // la nueva va justo debajo de la que está en grande (y pasa al centro); las que llegan al cargar, al final de la fila
+  const i = enCentro ? (orden.length ? Math.min(orden.length, Math.round(foco) + 1) : 0) : orden.length;
+  orden.splice(i, 0, m.id);
+  const n = { m, el, y: 0 }; notas.set(m.id, n);
+  if (enCentro) { foco = focoHasta = i; fase = 'quieto'; tFase = 0; }
+  n.y = destinoY(i, H);
   colocar(n, H);
   return el.firstElementChild;
 }
-// pone todas las tarjetas en fila, a un paso exacto, con la tarjeta "ancla" en su lugar
-function reacomodar(ancla, H) {
-  const L = largoMural(), centro = H / 2 + PASO / 2;
-  const orden = [...notas.values()].filter(o => o !== ancla).sort((a, b) => b.s - a.s);
-  const base = ancla ? ancla.s : centro;
-  orden.forEach((o, i) => { o.s = (((base - (i + 1) * PASO) % L) + L) % L; });
+function quitarNota(id) {
+  const n = notas.get(id); if (!n) return;
+  n.el.remove(); notas.delete(id);
+  const i = orden.indexOf(id); if (i >= 0) orden.splice(i, 1);
+  if (i >= 0 && i < Math.round(foco)) foco -= 1;
+  foco = Math.max(0, Math.min(Math.max(orden.length - 1, 0), Math.round(foco))); focoHasta = foco; fase = 'quieto'; tFase = 0;
 }
-function quitarNota(id) { const n = notas.get(id); if (n) { n.el.remove(); notas.delete(id); } }
 function cuadroMural(t) {
   const dt = Math.min(.05, (t - ultimoT) / 1000 || 0); ultimoT = t;
-  const H = altoMural(), L = largoMural(), centro = H / 2 + PASO / 2;
-  if (!pausaMural && notas.size) {
-    if (!paso) {                                   // empieza una pausa con la tarjeta del centro en grande
-      paso = { fase: 'quieto', t: 0 };
+  const H = altoMural(), N = orden.length;
+  if (pausaMural) { fase = 'quieto'; tFase = 0; }
+  else if (N > 1) {
+    tFase += dt * 1000;
+    if (fase === 'quieto' && tFase >= QUIETO) {
+      focoDesde = foco;
+      focoHasta = enCirculo() ? foco + 1 : (Math.round(foco) + 1) % N;   // al final de la fila regresa al principio
+      fase = 'mueve'; tFase = 0;
+    } else if (fase === 'mueve') {
+      const dur = Math.abs(focoHasta - focoDesde) > 1.5 ? MUEVE * 1.7 : MUEVE;
+      const p = Math.min(1, tFase / dur), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;   // suave al salir y al llegar
+      foco = focoDesde + (focoHasta - focoDesde) * e;
+      if (p >= 1) { foco = enCirculo() ? ((focoHasta % N) + N) % N : focoHasta; fase = 'quieto'; tFase = 0; }
     }
-    paso.t += dt * 1000;
-    if (paso.fase === 'quieto' && paso.t >= QUIETO) {
-      // la siguiente es la que está justo debajo del centro
-      let mejor = null;
-      for (const n of notas.values()) { const d = centro - n.s; if (d > 8 && (mejor === null || d < mejor)) mejor = d; }
-      if (mejor === null) for (const n of notas.values()) { const d = centro - (n.s - L); if (d > 8 && (mejor === null || d < mejor)) mejor = d; }
-      paso = { fase: 'mueve', t: 0, dist: Math.min(mejor ?? PASO, PASO * 1.5), hecho: 0 };
-    } else if (paso.fase === 'mueve') {
-      const p = Math.min(1, paso.t / MUEVE), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;   // suave al salir y al llegar
-      const avance = paso.dist * e - paso.hecho; paso.hecho += avance;
-      for (const n of notas.values()) n.s += avance;
-      if (p >= 1) paso = { fase: 'quieto', t: 0 };
-    }
-  } else if (pausaMural) paso = null;
-  for (const n of notas.values()) {
-    if (n.s >= L) { n.s -= L; n.vis = n.s; }
-    n.vis += (n.s - n.vis) * Math.min(1, dt * 7);
-    colocar(n, H);
   }
+  orden.forEach((id, i) => {
+    const n = notas.get(id), dest = destinoY(i, H);
+    if (Math.abs(dest - n.y) > H * .6) n.y = dest; else n.y += (dest - n.y) * Math.min(1, dt * 9);
+    colocar(n, H);
+  });
   requestAnimationFrame(cuadroMural);
 }
 requestAnimationFrame(cuadroMural);
