@@ -238,7 +238,7 @@ async function iniciar() {
   document.title = cfg.evento + ' · Seating';
   ponerFondos();
   $('qr').src = cfg.qr; $('url').textContent = cfg.urlMovil.replace(/^https?:\/\//, '');
-  if (cfg.mensajes) { $('banner-t').textContent = 'Leave a wish ✍️'; $('banner-p').textContent = 'After finding your table, write a message with your finger'; }
+  if (cfg.mensajes) { $('banner-t').textContent = 'Leave a wish ✍️'; $('banner-p').textContent = 'After finding your table, leave a message for the couple'; }
   dibujar(); repartirMesas();
   await sincronizar();
 }
@@ -300,7 +300,9 @@ async function repartirMesas() {
   }
 }
 
-async function sincronizar() {
+let sincronizando = null;
+function sincronizar() { return sincronizando || (sincronizando = sincronizarYa().finally(() => sincronizando = null)); }
+async function sincronizarYa() {
   const lista = await (await fetch('/api/estado')).json();
   for (const g of lista) if (!ocupados.has(g.id)) ocupar(g, false);
   if (cfg.mensajes) {
@@ -310,10 +312,11 @@ async function sincronizar() {
 }
 
 // ---------- mural de deseos ----------
-// Una sola columna a la derecha que sube sin parar desde abajo.
-// La tarjeta que pasa por el centro se agranda para poder leerla.
+// Una sola columna a la derecha. Cada mensaje sube al centro, se queda grande unos 2 s
+// y luego la columna avanza al siguiente.
 const notas = new Map();                 // id -> { m, el, s, vis }
-const PASO = 122, VEL = 30, ZOOM = .42;  // separación (px), velocidad (px/s), cuánto crece la del centro
+const PASO = 122, ZOOM = .42, QUIETO = 2200, MUEVE = 900;  // separación, cuánto crece la del centro, ms en grande, ms del cambio
+let paso = null;
 let pausaMural = false, ultimoT = 0;
 const altoMural = () => $('mural').clientHeight;
 const largoMural = () => Math.max(notas.size * PASO, altoMural() + PASO * 2);
@@ -336,21 +339,46 @@ function pegarNota(m, nueva, enCentro) {
     for (const o of notas.values()) if (o.s >= s - PASO / 2) o.s += PASO;   // los de arriba se corren para hacerle lugar
   } else {
     const todas = [...notas.values()];
-    s = todas.length ? Math.min(...todas.map(o => o.s)) - PASO : H + PASO / 2 - 40;   // detrás del último
+    s = todas.length ? Math.min(...todas.map(o => o.s)) - PASO : H / 2 + PASO / 2;   // el primero en el centro, los demás debajo
   }
   const n = { m, el, s, vis: s }; notas.set(m.id, n);
   const L = largoMural(); for (const o of notas.values()) { o.s = ((o.s % L) + L) % L; if (o === n) o.vis = o.s; }
+  if ([...notas.values()].some(o => o !== n && Math.abs(o.s - n.s) < PASO * .9)) reacomodar(n, H);
   colocar(n, H);
   return el.firstElementChild;
+}
+// pone todas las tarjetas en fila, a un paso exacto, con la tarjeta "ancla" en su lugar
+function reacomodar(ancla, H) {
+  const L = largoMural(), centro = H / 2 + PASO / 2;
+  const orden = [...notas.values()].filter(o => o !== ancla).sort((a, b) => b.s - a.s);
+  const base = ancla ? ancla.s : centro;
+  orden.forEach((o, i) => { o.s = (((base - (i + 1) * PASO) % L) + L) % L; });
 }
 function quitarNota(id) { const n = notas.get(id); if (n) { n.el.remove(); notas.delete(id); } }
 function cuadroMural(t) {
   const dt = Math.min(.05, (t - ultimoT) / 1000 || 0); ultimoT = t;
-  const H = altoMural(), L = largoMural();
+  const H = altoMural(), L = largoMural(), centro = H / 2 + PASO / 2;
+  if (!pausaMural && notas.size) {
+    if (!paso) {                                   // empieza una pausa con la tarjeta del centro en grande
+      paso = { fase: 'quieto', t: 0 };
+    }
+    paso.t += dt * 1000;
+    if (paso.fase === 'quieto' && paso.t >= QUIETO) {
+      // la siguiente es la que está justo debajo del centro
+      let mejor = null;
+      for (const n of notas.values()) { const d = centro - n.s; if (d > 8 && (mejor === null || d < mejor)) mejor = d; }
+      if (mejor === null) for (const n of notas.values()) { const d = centro - (n.s - L); if (d > 8 && (mejor === null || d < mejor)) mejor = d; }
+      paso = { fase: 'mueve', t: 0, dist: Math.min(mejor ?? PASO, PASO * 1.5), hecho: 0 };
+    } else if (paso.fase === 'mueve') {
+      const p = Math.min(1, paso.t / MUEVE), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;   // suave al salir y al llegar
+      const avance = paso.dist * e - paso.hecho; paso.hecho += avance;
+      for (const n of notas.values()) n.s += avance;
+      if (p >= 1) paso = { fase: 'quieto', t: 0 };
+    }
+  } else if (pausaMural) paso = null;
   for (const n of notas.values()) {
-    if (!pausaMural) n.s += VEL * dt;
     if (n.s >= L) { n.s -= L; n.vis = n.s; }
-    n.vis += (n.s - n.vis) * Math.min(1, dt * 5);
+    n.vis += (n.s - n.vis) * Math.min(1, dt * 7);
     colocar(n, H);
   }
   requestAnimationFrame(cuadroMural);

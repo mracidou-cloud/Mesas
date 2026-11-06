@@ -104,6 +104,52 @@
   .clay .pad .guia{color:rgba(138,107,88,.4)}
   .clay .color{border-color:#fff;box-shadow:0 0 0 1.5px #eadcc8}
   .clay .color.on{box-shadow:0 0 0 3px #ef8a6a}
+  [hidden]{display:none !important}
+  .pestanas{display:flex;gap:6px;padding:4px;border-radius:14px;background:#f2ecdf;margin:6px 0 14px}
+  .pestanas button{flex:1;font:inherit;font-weight:600;font-size:15px;padding:10px;border:0;border-radius:11px;background:none;color:var(--gris)}
+  .pestanas button.on{background:#fff;color:var(--tinta);box-shadow:0 2px 8px rgba(20,26,43,.12)}
+  #texto-deseo{width:100%;font:inherit;font-size:19px;line-height:1.35;padding:14px 16px;border-radius:14px;border:1.5px solid #e3d8c0;background:#fdfaf3;color:var(--tinta);resize:none;outline:none}
+  #texto-deseo:focus{border-color:var(--oro);box-shadow:0 0 0 4px rgba(214,180,111,.18)}
+  .cuenta-txt{text-align:right;font-size:12px;color:var(--gris);margin-top:4px}
+  .emojis{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:8px}
+  .emojis button{font-size:24px;line-height:1;padding:7px 0;border:0;border-radius:10px;background:#f6f0e3}
+  .emojis button:active{transform:scale(1.2);background:#efe3c8}
+  .vista-previa{height:auto;min-height:110px;display:flex;align-items:center;justify-content:center;padding:14px}
+  .vista-previa img{display:block;max-width:100%;max-height:150px}
+  .vista-previa .guia{font-size:17px}
+  .modo-escribir .grosor{display:none}
+  .clay .pestanas{background:#f1e6d6;border-radius:18px}
+  .clay .pestanas button{border-radius:14px}
+  .clay #texto-deseo{border-radius:18px;border-color:#eadcc8;background:#fffaf2}
+  .clay .emojis button{background:#f6ecdf;border-radius:14px}
+
+  /* ===== Tema "Frosted slate" (se suma a .clay y cambia los colores) ===== */
+  body.frost{--tinta:#1d2b3c;--gris:#4c5f74;--oro:#3f9a9c;background:linear-gradient(170deg,#b6c5d4,#8597ac) fixed}
+  .frost .top{background:linear-gradient(160deg,#2f4865,#22374f);box-shadow:inset 0 -8px 16px rgba(0,0,0,.2)}
+  .frost .adorno{color:#9fe0dc}
+  .frost .top h1{text-shadow:none}
+  .frost .card{background:rgba(236,243,249,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);box-shadow:0 22px 40px rgba(22,38,58,.25),inset 0 1px 0 #fff}
+  .frost input,.frost #texto-deseo{border-color:#c6d4e1;background:#fff}
+  .frost input:focus,.frost #texto-deseo:focus{border-color:#6fc0bd;box-shadow:0 0 0 4px rgba(111,192,189,.3)}
+  .frost li button{border-bottom-color:#dbe5ee}
+  .frost li button::after{color:#3f9a9c}
+  .frost .btn.oro{background:linear-gradient(180deg,#56b0b1,#3a8f92);color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -6px 10px rgba(20,70,72,.25),0 10px 20px rgba(30,90,92,.35)}
+  .frost .btn.claro{border-color:#c6d4e1;color:#4c5f74}
+  .frost .hola{color:#3f9a9c}
+  .frost .nmesa{color:#2f4865}
+  .frost .deseo-box{background:linear-gradient(160deg,#2f4865,#22374f);color:#fff}
+  .frost .deseo-box p{opacity:.85}
+  .frost .deseo-box .listo{color:#9fe0dc}
+  .frost svg#mini{background:#c3d0dd}
+  .frost .m-num{fill:#1d2b3c}
+  .frost .m-tu .m-base{stroke:#22374f}
+  .frost .m-silla{stroke:#9fb2c4;fill:#eef4f8}
+  .frost .m-silla.tu{fill:#3f9a9c;stroke:#fff}
+  .frost .pad{background:#f4f8fb;box-shadow:inset 0 0 0 2px #c6d4e1,inset 0 6px 14px rgba(22,38,58,.08)}
+  .frost .pad .guia{color:rgba(76,95,116,.45)}
+  .frost .color.on{box-shadow:0 0 0 3px #3f9a9c}
+  .frost .pestanas{background:#dde6ee}
+  .frost .emojis button{background:#e6edf3}
   .error{color:#a3352d;text-align:center;font-size:14px;margin-top:10px;min-height:1em}
   .otros{margin-top:18px;font-size:13px;color:var(--gris);text-align:center;line-height:1.7}
   .otros b{color:var(--tinta);font-weight:600}
@@ -139,7 +185,7 @@
     <div class="mira">✨ Look at the big screen ✨</div>
     <div class="deseo-box" id="deseo-box">
       <div style="font-family:var(--serif);font-size:24px;font-weight:600">Leave a wish ✍️</div>
-      <p id="deseo-txt">Write a message with your finger and it will appear on the big screen, next to your seat.</p>
+      <p id="deseo-txt">Type or draw a message and it will appear on the big screen.</p>
       <button class="btn oro" id="abrir-deseo">Write my wish</button>
     </div>
     <svg id="mini"></svg>
@@ -149,8 +195,21 @@
 
   <section class="vista" id="v-deseo">
     <h2>Leave a wish</h2>
-    <p class="ayuda">Write or draw with your finger</p>
-    <div class="pad" id="pad"><canvas id="lienzo"></canvas><div class="guia" id="guia">Write here…</div></div>
+    <div class="pestanas" id="pestanas">
+      <button class="on" data-modo="escribir">⌨️ Type</button>
+      <button data-modo="dibujar">✍️ Draw</button>
+    </div>
+    <div id="modo-dibujar" hidden>
+      <p class="ayuda">Write or draw with your finger</p>
+      <div class="pad" id="pad"><canvas id="lienzo"></canvas><div class="guia" id="guia">Write here…</div></div>
+    </div>
+    <div id="modo-escribir">
+      <textarea id="texto-deseo" maxlength="120" rows="3" placeholder="Write your wish… 💕"></textarea>
+      <div class="cuenta-txt"><span id="cuenta-txt">0</span>/120</div>
+      <div class="emojis" id="emojis"></div>
+      <div class="ayuda" style="margin:12px 0 6px">Preview on the big screen</div>
+      <div class="pad vista-previa"><img id="vista-texto" alt=""><div class="guia" id="guia-texto">Your wish will look like this ✨</div></div>
+    </div>
     <div class="herr" id="colores">
       <button class="color on" data-c="#f7dc8c" style="background:#f7dc8c" aria-label="Gold"></button>
       <button class="color" data-c="#fbf3e2" style="background:#fbf3e2" aria-label="White"></button>
@@ -161,7 +220,7 @@
       <button class="grosor on" data-g="5" aria-label="Medium"><i style="width:9px;height:9px"></i></button>
       <button class="grosor" data-g="9" aria-label="Thick"><i style="width:14px;height:14px"></i></button>
     </div>
-    <div class="herr"><button class="mini-btn" id="deshacer">↶ Undo</button><button class="mini-btn" id="limpiar">Clear</button></div>
+    <div class="herr solo-dibujo" hidden id="herr-dibujo"><button class="mini-btn" id="deshacer">↶ Undo</button><button class="mini-btn" id="limpiar">Clear</button></div>
     <button class="btn oro" id="enviar-deseo">Send to the big screen ✨</button>
     <button class="btn claro" id="cancelar-deseo">Cancel</button>
     <div class="error" id="err-deseo"></div>
@@ -182,11 +241,12 @@ async function iniciar() {
   [cfg, invitados] = await Promise.all([fetch('/api/config').then(r => r.json()), fetch('/api/invitados').then(r => r.json())]);
   $('evento').textContent = cfg.evento; document.title = cfg.evento;
   document.body.classList.add('tema-' + cfg.tema);
-  if (cfg.tema === 'clay') {
-    document.body.classList.add('clay');
-    document.querySelector('meta[name=theme-color]').content = '#a8c9ae';
-    // tintas oscuras para escribir sobre el papel crema
-    const tintas = ['#4b3428', '#ef8a6a', '#5f8f6e', '#6f93b8'];
+  if (cfg.tema === 'clay' || cfg.tema === 'frost') {
+    const frost = cfg.tema === 'frost';
+    document.body.classList.add('clay'); if (frost) document.body.classList.add('frost');
+    document.querySelector('meta[name=theme-color]').content = frost ? '#22374f' : '#a8c9ae';
+    // tintas oscuras para escribir sobre papel claro
+    const tintas = frost ? ['#22374f', '#3f9a9c', '#6c6fae', '#5f84aa'] : ['#4b3428', '#ef8a6a', '#5f8f6e', '#6f93b8'];
     document.querySelectorAll('.color').forEach((b, i) => { b.dataset.c = tintas[i]; b.style.background = tintas[i]; });
     color = tintas[0];
   }
@@ -226,7 +286,13 @@ $('otro').onclick = () => { $('q').value = ''; $('res').innerHTML = ''; vista('v
 function mostrar(d, nuevo) {
   $('r-nombre').textContent = d.nombre;
   $('r-num').textContent = d.mesa;
-  if (cfg.tema === 'clay') {
+  if (cfg.tema === 'frost') {
+    const c = [['#c9efec', '#6fc0bd', '#3f9a9c', '#14363a'], ['#9fb6d1', '#3f5a7a', '#22374f', '#f4f8fb'], ['#ffffff', '#dbe8f1', '#a9c3d6', '#1d2b3c'], ['#dcdcf6', '#9a9cd4', '#6c6fae', '#1d1f4a'],
+      ['#d3e3f2', '#8fb0cf', '#5f84aa', '#13283f'], ['#d8f1e8', '#93cfbd', '#5ea894', '#123a30'], ['#c5cfe0', '#7f8fb0', '#55627f', '#f4f8fb'], ['#e9eef3', '#b8c6d4', '#8799ac', '#1d2b3c']][(d.mesa - 1) % 8];
+    const md = document.querySelector('.medalla');
+    md.style.background = `radial-gradient(circle at 35% 28%,${c[0]},${c[1]} 62%,${c[2]})`;
+    md.querySelector('b').style.color = c[3]; md.querySelector('small').style.color = c[3];
+  } else if (cfg.tema === 'clay') {
     const c = [['#cfe5d2', '#a8c9ae', '#7fa98a'], ['#ffe0d2', '#f6bfa8', '#e09a80'], ['#fff1c6', '#f7d98f', '#e2b85c'], ['#dbe8f5', '#b3cbe3', '#8aa9c9'],
       ['#ffd2c4', '#f29b7f', '#d97558'], ['#f1e1f2', '#d9bfdc', '#b898bc'], ['#d9efe6', '#b9dccf', '#8fbfac'], ['#ffdfe5', '#f4b6c2', '#d98e9e']][(d.mesa - 1) % 8];
     document.querySelector('.medalla').style.background = `radial-gradient(circle at 35% 28%,${c[0]},${c[1]} 62%,${c[2]})`;
@@ -239,7 +305,7 @@ function mostrar(d, nuevo) {
   const box = $('deseo-box');
   box.style.display = cfg.mensajes ? 'block' : 'none';
   const enviado = deseosEnviados().includes(d.id);
-  $('deseo-txt').innerHTML = enviado ? '<span class="listo">✓ Your wish is on the big screen!</span>' : 'Write a message with your finger and it will appear on the big screen, next to your seat.';
+  $('deseo-txt').innerHTML = enviado ? '<span class="listo">✓ Your wish is on the big screen!</span>' : 'Type or draw a message and it will appear on the big screen.';
   $('abrir-deseo').textContent = enviado ? 'Write a new one' : 'Write my wish';
   vista('v-mesa');
   if (nuevo && navigator.vibrate) navigator.vibrate([60, 40, 60]);
@@ -251,7 +317,8 @@ function mini(d) {
   svg.innerHTML = P.mesas.map(m => {
     const tu = m.numero === d.mesa;
     const sillas = m.sillas.map((s, i) => `<circle class="m-silla ${tu && i === d.asiento ? 'tu' : ''}" cx="${s.x}" cy="${s.y}" r="${P.rSilla * .85}"/>`).join('');
-    const relleno = cfg.tema === 'clay' ? ` style="fill:${['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'][(m.numero - 1) % 8]}"` : '';
+    const relleno = cfg.tema === 'clay' ? ` style="fill:${['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'][(m.numero - 1) % 8]}"`
+      : cfg.tema === 'frost' ? ` style="fill:${['#6fc0bd', '#3f5a7a', '#dbe8f1', '#9a9cd4', '#8fb0cf', '#93cfbd', '#7f8fb0', '#b8c6d4'][(m.numero - 1) % 8]}"` : '';
     return `<g class="${tu ? 'm-tu' : ''}"><circle class="m-base" cx="${m.cx}" cy="${m.cy}" r="${P.R}"${relleno}/><text class="m-num" x="${m.cx}" y="${m.cy}">${m.numero}</text>${sillas}</g>`;
   }).join('');
 }
@@ -296,7 +363,74 @@ $('colores').addEventListener('click', e => {
 });
 $('deshacer').onclick = () => { trazos.pop(); redibujar(); };
 $('limpiar').onclick = () => { trazos = []; redibujar(); };
-$('abrir-deseo').onclick = () => { trazos = []; $('err-deseo').textContent = ''; vista('v-deseo'); requestAnimationFrame(ajustarLienzo); };
+$('abrir-deseo').onclick = () => { trazos = []; $('texto-deseo').value = ''; actualizarTexto(); $('err-deseo').textContent = ''; vista('v-deseo'); ponerModo(modo); };
+
+// ---------- escribir con teclado + emojis ----------
+let modo = 'escribir';
+const EMOJIS = ['❤️', '💕', '💖', '🥰', '😍', '😘', '🥂', '🍾', '🎉', '🎊', '✨', '🌟', '💍', '💐', '🌹', '🌸', '👰', '🤵', '💃', '🕺', '🎂', '🎈', '🙏', '😂'];
+$('emojis').innerHTML = EMOJIS.map(e => `<button type="button">${e}</button>`).join('');
+$('emojis').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const t = $('texto-deseo'), ini = t.selectionStart ?? t.value.length, fin = t.selectionEnd ?? t.value.length;
+  if (t.value.length + b.textContent.length > 120) return;
+  t.value = t.value.slice(0, ini) + b.textContent + t.value.slice(fin);
+  const p = ini + b.textContent.length; t.setSelectionRange(p, p);
+  actualizarTexto();
+});
+function ponerModo(m) {
+  modo = m;
+  document.querySelectorAll('#pestanas button').forEach(b => b.classList.toggle('on', b.dataset.modo === m));
+  $('modo-dibujar').hidden = m !== 'dibujar'; $('herr-dibujo').hidden = m !== 'dibujar'; $('modo-escribir').hidden = m !== 'escribir';
+  document.querySelector('#v-deseo').classList.toggle('modo-escribir', m === 'escribir');
+  if (m === 'dibujar') requestAnimationFrame(ajustarLienzo); else actualizarTexto();
+}
+$('pestanas').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ponerModo(b.dataset.modo); });
+let tVista;
+function actualizarTexto() {
+  const v = $('texto-deseo').value;
+  $('cuenta-txt').textContent = [...v].length;
+  clearTimeout(tVista);
+  tVista = setTimeout(async () => {
+    const hay = v.trim().length > 0;
+    $('guia-texto').style.display = hay ? 'none' : 'flex';
+    $('vista-texto').style.display = hay ? 'block' : 'none';
+    if (hay) $('vista-texto').src = await textoAImagen(v);
+  }, 120);
+}
+$('texto-deseo').addEventListener('input', actualizarTexto);
+document.querySelectorAll('.color').forEach(b => b.addEventListener('click', () => setTimeout(actualizarTexto, 0)));
+
+// Convierte el texto en una imagen (como si fuera escrito a mano) para que la pantalla lo muestre igual que los dibujos
+async function textoAImagen(texto) {
+  const clay = cfg.tema === 'clay' || cfg.tema === 'frost';
+  const fam = clay ? '"Fredoka", "Nunito", sans-serif' : '"Cormorant Garamond", Georgia, serif';
+  const peso = clay ? '600' : 'italic 600';
+  try { await document.fonts.load(`${peso} 80px ${fam.split(',')[0]}`); } catch {}
+  const ANCHO = 1100, ALTO_MAX = 360;
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  const partir = tam => {
+    x.font = `${peso} ${tam}px ${fam}`;
+    const lineas = [];
+    for (const parrafo of texto.trim().split(/\n+/)) {
+      let actual = '';
+      for (const palabra of parrafo.split(/\s+/)) {
+        const prueba = actual ? actual + ' ' + palabra : palabra;
+        if (x.measureText(prueba).width > ANCHO && actual) { lineas.push(actual); actual = palabra; } else actual = prueba;
+      }
+      if (actual) lineas.push(actual);
+    }
+    return lineas;
+  };
+  let tam = 120, lineas;
+  for (; tam >= 36; tam -= 4) { lineas = partir(tam); if (lineas.length * tam * 1.2 <= ALTO_MAX && lineas.every(l => x.measureText(l).width <= ANCHO)) break; }
+  lineas = partir(tam);
+  const lh = tam * 1.2, w = Math.min(ANCHO, Math.max(...lineas.map(l => x.measureText(l).width))) + 40, h = lineas.length * lh + 30;
+  c.width = Math.ceil(w); c.height = Math.ceil(h);
+  x.font = `${peso} ${tam}px ${fam}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = color; x.shadowColor = color; x.shadowBlur = 6;
+  lineas.forEach((l, i) => x.fillText(l, c.width / 2, 15 + lh * (i + .5)));
+  return c.toDataURL('image/png');
+}
 $('cancelar-deseo').onclick = () => vista('v-mesa');
 addEventListener('resize', () => { if ($('v-deseo').classList.contains('on')) ajustarLienzo(); });
 
@@ -311,10 +445,11 @@ function exportar() {
   return c.toDataURL('image/png');
 }
 $('enviar-deseo').onclick = async () => {
-  if (!trazos.length) { $('err-deseo').textContent = 'Write something first ✍️'; return; }
+  const texto = $('texto-deseo').value.trim();
+  if (modo === 'escribir' ? !texto : !trazos.length) { $('err-deseo').textContent = 'Write something first ✍️'; return; }
   const b = $('enviar-deseo'); b.disabled = true; $('err-deseo').textContent = '';
   try {
-    const r = await fetch('/api/mensaje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: actual.id, img: exportar() }) });
+    const r = await fetch('/api/mensaje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: actual.id, img: modo === 'escribir' ? await textoAImagen(texto) : exportar() }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'Error');
     const l = deseosEnviados(); if (!l.includes(actual.id)) l.push(actual.id); localStorage.setItem(CLAVE_DESEOS, JSON.stringify(l));

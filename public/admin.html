@@ -167,7 +167,7 @@
 
   <div class="card">
     <h2>5. Wishes wall ✍️</h2>
-    <p class="desc">After checking in, guests can write a short message with their finger. It appears on the big screen in a column on the right that keeps scrolling; the wish in the middle is shown larger.</p>
+    <p class="desc">After checking in, guests can type (with emojis) or draw a short message. It appears on the big screen in a column on the right; each wish moves to the middle, stays large for about 2 seconds, then the next one comes up.</p>
     <label class="interruptor"><input type="checkbox" id="m-activo"><span class="riel"><i></i></span> <b id="m-estado">Off</b></label>
     <div class="acciones"><span id="m-cuenta" style="font-size:14px;color:var(--gris)"></span><span style="flex:1"></span><button class="peligro" id="m-borrar-todos">Delete all wishes</button></div>
     <div class="deseos" id="m-lista"></div>
@@ -302,8 +302,9 @@ $('reiniciar').onclick = async () => {
 // ---- editor de distribución (arrastrar mesas y QR) ----
 const ED = { id: null, mesas: {}, qr: null, sucio: false, P: null };
 const EST = { W: 1920, H: 1080 };
-const QR_TAM = { elegant: { w: 330, h: 330, giro: 45 }, clay: { w: 384, h: 448, giro: 0 } };
+const QR_TAM = { elegant: { w: 330, h: 330, giro: 45 }, clay: { w: 384, h: 448, giro: 0 }, frost: { w: 384, h: 448, giro: 0 } };
 const PASTEL_ED = ['#a8c9ae', '#f6bfa8', '#f7d98f', '#b3cbe3', '#f29b7f', '#d9bfdc', '#b9dccf', '#f4b6c2'];
+const FROST_ED = [['#6fc0bd', '#14363a'], ['#3f5a7a', '#f4f8fb'], ['#dbe8f1', '#1d2b3c'], ['#9a9cd4', '#1d1f4a'], ['#8fb0cf', '#13283f'], ['#93cfbd', '#123a30'], ['#7f8fb0', '#f4f8fb'], ['#b8c6d4', '#1d2b3c']];
 function editables() { return (datos.disenos || []).filter(d => d.editable); }
 function abrirEditor(id) {
   const ds = editables(); if (!ds.length) return;
@@ -331,12 +332,13 @@ function pintarEditor() {
   let h = zonas.map(([t, x, y, w, hh]) => `<div class="ed-zona" style="left:${pct(x, EST.W)};top:${pct(y, EST.H)};width:${pct(w, EST.W)};height:${pct(hh, EST.H)}">${t}</div>`).join('');
   const q = QR_TAM[id] || QR_TAM.elegant;
   h += `<div class="ed-qr" data-qr="1" style="left:${pct(ED.qr.x, EST.W)};top:${pct(ED.qr.y, EST.H)};width:${pct(q.w, EST.W)};height:${pct(q.h, EST.H)}"><i style="transform:rotate(${q.giro}deg)"></i><b>QR</b></div>`;
-  const n = datos.config.asientosPorMesa, rs = P.rSilla / al, rm = (id === 'clay' ? P.R * 1.12 : P.R) / al, ra = (al - P.rSilla) / al;
+  const n = datos.config.asientosPorMesa, rs = P.rSilla / al, rm = (id === 'clay' || id === 'frost' ? P.R * 1.12 : P.R) / al, ra = (al - P.rSilla) / al;
   for (const [num, p] of Object.entries(ED.mesas)) {
-    const color = id === 'clay' ? PASTEL_ED[(num - 1) % 8] : '#2a1548';
-    const borde = id === 'clay' ? '#fff' : '#e0b04a', texto = id === 'clay' ? '#4b3428' : '#fbf3e2';
+    const fr = FROST_ED[(num - 1) % 8];
+    const color = id === 'clay' ? PASTEL_ED[(num - 1) % 8] : id === 'frost' ? fr[0] : '#2a1548';
+    const borde = id === 'clay' || id === 'frost' ? '#fff' : '#e0b04a', texto = id === 'clay' ? '#4b3428' : id === 'frost' ? fr[1] : '#fbf3e2';
     let sv = `<svg viewBox="-1 -1 2 2"><circle class="base" r="${rm}" fill="${color}" stroke="${borde}" stroke-width=".04"/>`;
-    for (let j = 0; j < n; j++) { const a = -Math.PI / 2 + j * 2 * Math.PI / n; sv += `<circle cx="${(ra * Math.cos(a)).toFixed(3)}" cy="${(ra * Math.sin(a)).toFixed(3)}" r="${rs}" fill="${id === 'clay' ? '#fffaf2' : 'rgba(22,9,40,.8)'}" stroke="${borde}" stroke-width=".02" opacity=".9"/>`; }
+    for (let j = 0; j < n; j++) { const a = -Math.PI / 2 + j * 2 * Math.PI / n; sv += `<circle cx="${(ra * Math.cos(a)).toFixed(3)}" cy="${(ra * Math.sin(a)).toFixed(3)}" r="${rs}" fill="${id === 'clay' ? '#fffaf2' : id === 'frost' ? 'rgba(240,246,250,.8)' : 'rgba(22,9,40,.8)'}" stroke="${borde}" stroke-width=".02" opacity=".9"/>`; }
     sv += `<text y=".12" text-anchor="middle" font-size=".5" font-family="Georgia,serif" fill="${texto}">${num}</text></svg>`;
     h += `<div class="ed-mesa" data-mesa="${num}" style="left:${pct(p.x, EST.W)};top:${pct(p.y, EST.H)};width:${pct(2 * al, EST.W)};aspect-ratio:1">${sv}</div>`;
   }

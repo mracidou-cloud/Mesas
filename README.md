@@ -21,10 +21,11 @@ Each design is saved as its own file in `public/disenos/` (one doesn’t affect 
 |---|---|---|
 | **Elegant** (`elegant`) | Purple & gold background, tilted QR in a diamond frame | ✓ |
 | **Soft clay** (`clay`) | Pastel, rounded “clay” style, colorful tables | ✓ |
+| **Frosted slate** (`frost`) | Cool blue-gray frosted glass, navy & teal | ✓ |
 | **Navy ring** (`ring`) | Navy & gold, tables in a ring around the QR, dancing couple | — |
 | **Classic** (`classic`) | Navy & gold, table grid, side panel with QR, counter and recent arrivals | — |
 
-**Layout editor** (/admin → 4. Layout): drag each table and the QR code to where you want them in the Elegant and Soft clay designs, then press *Save layout*. Tables that overlap something turn red. *Reset to automatic* puts everything back. Classic and Navy ring arrange their tables automatically.
+**Layout editor** (/admin → 4. Layout): drag each table and the QR code to where you want them in the Elegant, Soft clay and Frosted slate designs, then press *Save layout*. Tables that overlap something turn red. *Reset to automatic* puts everything back. Classic and Navy ring arrange their tables automatically.
 
 Preview any design at `/pantalla/<id>` (e.g. `/pantalla/clay`). The phone page follows the chosen design.
 
@@ -61,7 +62,7 @@ Without auto-save, use **💾 Save permanently** to download `config.json` and `
 
 ## Wishes wall ✍️
 
-After checking in, guests can tap **“Leave a wish”**, write or draw a short message with their finger, and send it. It appears big on the screen with their name, then joins a column on the right that keeps scrolling up; the wish passing through the middle is shown larger so people can read it.
+After checking in, guests can tap **“Leave a wish”** and either type a message (with an emoji bar) or draw/write it with their finger. It appears big on the screen with their name, then joins a column on the right. Each wish moves to the middle, stays large for about 2 seconds, then the column steps to the next one.
 
 In /admin → **4. Wishes wall**: turn it on/off, see all wishes, and delete any of them (it disappears from the screen right away).
 
